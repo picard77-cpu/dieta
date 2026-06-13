@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Dieta</title>
+<style>
+  :root {
+    --bg: #f4f0e8;
+    --surface: #ede8de;
+    --surface2: #e5dfd3;
+    --border: #d5cfc3;
+    --accent-on: #5a7a5a;
+    --accent-off: #4a7ab5;
+    --accent-scarico: #c47a3a;
+    --text: #2a2a24;
+    --text-muted: #5a5a50;
+    --text-dim: #9a9a8a;
+    --check: #5a7a5a;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    min-height: 100vh;
+    padding-bottom: 40px;
+  }
+
+  /* HEADER */
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 20px 12px;
+  }
+
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .app-title {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .reset-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 12px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  .reset-btn:active { opacity: 0.6; }
+
+  /* DAY SELECTOR */
+  .day-selector {
+    display: flex;
+    gap: 6px;
+  }
+
+  .day-btn {
+    flex: 1;
+    padding: 8px 4px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+  }
+
+  .day-btn.active-on {
+    background: rgba(90,122,90,0.15);
+    border-color: var(--accent-on);
+    color: #3d5c3d;
+  }
+  .day-btn.active-off {
+    background: rgba(74,122,181,0.15);
+    border-color: var(--accent-off);
+    color: #2d5a8a;
+  }
+  .day-btn.active-scarico {
+    background: rgba(196,122,58,0.15);
+    border-color: var(--accent-scarico);
+    color: #8a4a1a;
+  }
+
+  /* MACROS BAR */
+  .macros-bar {
+    display: flex;
+    gap: 8px;
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .macro-pill {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: var(--surface);
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+  }
+
+  .macro-pill span {
+    color: var(--text);
+  }
+
+  /* CONTENT */
+  .content {
+    padding: 0 16px;
+  }
+
+  /* MEAL SECTION */
+  .meal-section {
+    margin-top: 20px;
+  }
+
+  .meal-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 6px 12px;
+    border-radius: 20px;
+    display: inline-block;
+    margin-bottom: 10px;
+  }
+
+  .meal-label.colazione { background: rgba(90,122,90,0.12); color: #3d5c3d; }
+  .meal-label.spuntino { background: rgba(74,122,181,0.12); color: #2d5a8a; }
+  .meal-label.pranzo { background: rgba(90,122,90,0.12); color: #3d5c3d; }
+  .meal-label.merenda { background: rgba(74,122,181,0.12); color: #2d5a8a; }
+  .meal-label.cena { background: rgba(90,122,90,0.12); color: #3d5c3d; }
+  .meal-label.serale { background: rgba(196,122,58,0.12); color: #8a4a1a; }
+
+  /* ALTERNATIVE TABS */
+  .alt-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+
+  .alt-tab {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-dim);
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+    letter-spacing: 0.04em;
+  }
+
+  .alt-tab.selected {
+    border-color: #7a9a7a;
+    background: rgba(90,122,90,0.12);
+    color: #3d5c3d;
+  }
+
+  /* CATEGORY BLOCK */
+  .cat-block {
+    margin-bottom: 14px;
+  }
+
+  .cat-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+    padding-left: 2px;
+  }
+
+  /* OPTION ITEMS */
+  .option-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 12px;
+    margin-bottom: 4px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    cursor: pointer;
+    transition: all 0.12s;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .option-item:active { opacity: 0.7; }
+
+  .option-item.checked {
+    background: rgba(90,122,90,0.14);
+    border-color: #9ab89a;
+  }
+
+  .option-check {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 1.5px solid var(--text-dim);
+    flex-shrink: 0;
+    margin-top: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+
+  .option-item.checked .option-check {
+    background: var(--check);
+    border-color: var(--check);
+  }
+
+  .option-item.checked .option-check::after {
+    content: '';
+    width: 5px;
+    height: 9px;
+    border: 2px solid #f4f0e8;
+    border-top: none;
+    border-left: none;
+    transform: rotate(45deg) translateY(-1px);
+    display: block;
+  }
+
+  .option-text {
+    font-size: 14px;
+    color: var(--text-muted);
+    flex: 1;
+    line-height: 1.4;
+  }
+
+  .option-item.checked .option-text {
+    color: var(--text);
+  }
+
+  /* FREE ITEM (verdure, fisso) */
+  .free-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 12px;
+    margin-bottom: 4px;
+    border-radius: var(--radius-sm);
+    border: 1px dashed var(--border);
+    background: transparent;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .free-item.checked {
+    border-color: #9ab89a;
+    background: rgba(90,122,90,0.08);
+  }
+
+  .free-check {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    border: 1.5px solid var(--text-dim);
+    flex-shrink: 0;
+    margin-top: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+
+  .free-item.checked .free-check {
+    background: #9ab89a;
+    border-color: #7a9a7a;
+  }
+
+  .free-item.checked .free-check::after {
+    content: '';
+    width: 5px;
+    height: 9px;
+    border: 2px solid #f4f0e8;
+    border-top: none;
+    border-left: none;
+    transform: rotate(45deg) translateY(-1px);
+    display: block;
+  }
+
+  .free-text {
+    font-size: 13px;
+    color: var(--text-dim);
+    flex: 1;
+    line-height: 1.4;
+  }
+
+  .free-item.checked .free-text {
+    color: var(--text-muted);
+  }
+
+  /* NOTE SEZIONE */
+  .section-note {
+    font-size: 12px;
+    color: var(--text-dim);
+    padding: 6px 12px;
+    margin-bottom: 8px;
+    font-style: italic;
+  }
+
+  /* POST WORKOUT badge */
+  .pw-badge {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: #8a4a1a;
+    background: rgba(196,122,58,0.12);
+    padding: 2px 7px;
+    border-radius: 10px;
+    display: inline-block;
+    margin-bottom: 4px;
+    margin-left: 2px;
+  }
+
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 20px 0 4px;
+  }
+
+  /* PROGRESS */
+  .progress-bar-wrap {
+    padding: 10px 20px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .progress-bar {
+    flex: 1;
+    height: 3px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: #5a7a5a;
+    border-radius: 3px;
+    transition: width 0.3s ease;
+  }
+  .progress-label {
+    font-size: 11px;
+    color: var(--text-dim);
+    white-space: nowrap;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <span class="app-title">Dieta</span>
+    <button class="reset-btn" onclick="resetDay()">Reset giorno</button>
+  </div>
+  <div class="day-selector">
+    <button class="day-btn" id="btn-on" onclick="setDay('on')">ON<br><span style="font-size:10px;font-weight:400">mar gio sab dom</span></button>
+    <button class="day-btn" id="btn-off" onclick="setDay('off')">OFF<br><span style="font-size:10px;font-weight:400">mer ven</span></button>
+    <button class="day-btn" id="btn-scarico" onclick="setDay('scarico')">SCARICO<br><span style="font-size:10px;font-weight:400">lun</span></button>
+  </div>
+</div>
+
+<div class="progress-bar-wrap">
+  <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+  <span class="progress-label" id="progressLabel">0 / 0</span>
+</div>
+
+<div class="macros-bar" id="macrosBar"></div>
+<div class="content" id="content"></div>
+
+<script>
+const DAYS = {
+  on: {
+    label: 'Allenamento ON',
+    macros: '1750 kcal — carb 210g — prot 160g — grassi 30g',
+    accent: 'on',
+    pasti: [
+      {
+        id: 'colazione',
+        nome: 'Colazione',
+        type: 'colazione',
+        alternative: [
+          {
+            nome: 'Yogurt',
+            categorie: [
+              { nome: 'Proteina', tipo: 'radio', opzioni: ['200gr di Yogurt Greco 0%', '200gr PRO High Protein crema dessert'] },
+              { nome: 'Carboidrato', tipo: 'radio', opzioni: ['6 fette biscottate', '60gr farro soffiato', '60gr fiocchi d\'avena'] },
+              { nome: '', tipo: 'fixed', opzioni: ['20gr di miele'] }
+            ]
+          },
+          {
+            nome: 'Latte Proteico',
+            categorie: [
+              { nome: 'Proteina', tipo: 'fixed', opzioni: ['200gr di latte parzialmente scremato + 30gr di proteine whey isolate'] },
+              { nome: 'Carboidrato', tipo: 'radio', opzioni: ['6 fette biscottate', '60gr fiocchi di mais (o altri cereali)'] },
+              { nome: '', tipo: 'fixed', opzioni: ['20gr di miele'] }
+            ]
+          }
+        ]
+      },
+      {
+        id: 'spuntino_mattina',
+        nome: 'Spuntino Mattina',
+        type: 'spuntino',
+        categorie: [
+          { nome: '', tipo: 'radio', opzioni: ['1 Yogurt Danone Hipro 15gr', '1 Yogurt greco 0% (vasetto 150/170gr)', '20gr Grana'] }
+        ]
+      },
+      {
+        id: 'pranzo',
+        nome: 'Pranzo',
+        type: 'pranzo',
+        note: 'Verdure di stagione a volontà (max 200g se pomodori, peperoni, zucca, carota, barbabietola)',
+        categorie: [
+          { nome: 'Proteina', tipo: 'radio', opzioni: ['160gr carne (Petto pollo, Tacchino, Manzo magro, Vitello, Lonza)', '210gr pesce (Branzino, Merluzzo/Nasello, Platessa/Sogliola, Tonno naturale 135gr, Seppie, Totani, Gamberi)', '100gr Bresaola/Bresaola tacchino/Prosciutto crudo o cotto magri (Snello Rovagnati)', 'Frittata: 1 uovo + 200gr Albume', '1 Mozzarella proteica', '1 vasetto Fiocchi Di Latte Milk Pro High Protein'] },
+          { nome: 'Carboidrato', tipo: 'radio', opzioni: ['140gr pane', '100gr cereale (pasta integrale, riso, cous cous, riso nero, orzo, farro)', '200gr legumi in scatola (sgocciolato, 1 lattina grande)'] },
+          { nome: 'Grassi', tipo: 'fixed', opzioni: ['5gr olio (1 cucchiaino)'] }
+        ]
+      },
+      {
+        id: 'merenda',
+        nome: 'Merenda Pomeriggio',
+        type: 'merenda',
+        categorie: [
+          { nome: 'Proteina/Snack', tipo: 'radio', opzioni: ['1 Yogurt Danone Hipro 15gr', '1 Yogurt greco 0% (vasetto 150/170gr)', '1 uovo sodo', '20gr Grana'] },
+          { nome: 'Carboidrato', tipo: 'radio', opzioni: ['2 fette Wasa Integrale', '120/150gr frutta di stagione'] }
+        ],
+        extra: { pw: true, label: 'POST WORKOUT', opzioni: ['30gr proteine whey isolate + acqua'] }
+      },
+      {
+        id: 'cena',
+        nome: 'Cena',
+        type: 'cena',
+        note: 'Verdure di stagione a volontà (max 200g se pomodori, peperoni, zucca, carota, barbabietola)',
+        categorie: [
+          { nome: 'Proteina', tipo: 'radio', opzioni: ['160gr carne (Petto pollo, Tacchino, Manzo magro, Vitello, Lonza)', '210gr pesce (Branzino, Merluzzo/Nasello, Platessa/Sogliola, Tonno naturale 135gr, Seppie, Totani, Gamberi)', '100gr Bresaola/Bresaola tacchino/Prosciutto crudo o cotto magri (Snello Rovagnati)', 'Frittata: 1 uovo + 300gr Albume', '1 Mozzarella proteica', '1 vasetto Fiocchi Di Latte Milk Pro High Protein'] },
+          { nome: 'Carboidrato', tipo: 'radio', opzioni: ['5 fette Wasa Integrale', '70gr pane integrale (poco più di metà panino)', '50gr cereale (pasta, riso normale/basmati/integrale, cous cous, riso nero, orzo, farro)', '120gr gnocchi di patate o spatzle', '200gr legumi in scatola (sgocciolato, 1 lattina grande)'] },
+          { nome: 'Grassi', tipo: 'fixed', opzioni: ['5gr olio (1 cucchiaino)'] }
+        ]
+      },
+      {
+        id: 'serale',
+        nome: 'Spuntino Serale',
+        type: 'serale',
+        note: 'Solo in caso di fame',
+        categorie: [
+          { nome: '', tipo: 'radio', opzioni: ['1 Yogurt Danone Hipro 15gr', '1 Yogurt greco 0% (vasetto 150/170gr)'] }
+        ]
+      }
+    ]
+  },
+
+  off: {
+    label: 'Allenamento OFF',
+    macros: '1500 kcal — carb 140g — prot 150g — grassi 30/35g',
+    accent: 'off',
+    pasti: [
+      {
+        id: 'colazione',
+        nome: 'Colazione',
+        type: 'colazione',
+        alternative: [
+          {
+            nome: 'Yogurt',
+            categorie: [
+              { nome: 'Proteina', tipo: 'radio', opzioni: ['200gr di Yogurt Greco 0%', '200gr PRO High Protein crema dessert'] },
+              { nome: 'Carboidrato', tipo: 'radio', opzioni: ['6 fette biscottate', '60gr farro soffiato', '60gr fiocchi d\'avena'] }
+            ]
+          },
+          {
+            nome: 'Latte',
+            categorie: [
+              { nome: 'Proteina', tipo: 'fixed', opzioni: ['200gr di latte parzialmente scremato + 30gr di proteine whey isolate'] },
+              { nome: 'Carboidrato', tipo: 'radio', opzioni: ['6 fette biscottate', '60gr farro soffiato', '60gr fiocchi d\'avena'] }
+            ]
+          }
+        ]
+      },
+      {
+        id: 'spuntino_mattina',
+        nome: 'Spuntino Mattina',
+        type: 'spuntino',
+        categorie: [
+          { nome: '', tipo: 'radio', opzioni: ['1 Yogurt Danone Hipro 15gr', '1 Yogurt greco 0% (vasetto 150/170gr)', '20gr Grana'] }
+        ]
+      },
+      {
+        id: 'pranzo',
+        nome: 'Pranzo',
+        type: 'pranzo',
+        note: 'Verdure di stagione a volontà (max 200g se pomodori, peperoni, zucca, carota, barbabietola)',
+        categorie: [
+          { nome: 'Proteina', tipo: 'radio', opzioni: ['160gr carne (Petto pollo, Tacchino, Manzo magro, Vitello, Lonza)', '210gr pesce (Branzino, Merluzzo/Nasello, Platessa/Sogliola, Tonno naturale 135gr, Seppie, Totani, Gamberi)', '100gr Bresaola/Bresaola tacchino/Prosciutto crudo o cotto magri (Snello Rovagnati)', 'Frittata: 1 uovo + 200gr Albume', '1 Mozzarella proteica', '1 vasetto Fiocchi Di Latte Milk Pro High Protein'] },
+          { nome: 'Carboidrato', tipo: 'radio', opzioni: ['5 fette Wasa Integrale', '70gr pane integrale', '50gr cereale (pasta integrale, riso, cous cous, riso nero, orzo, farro)', '200gr legumi in scatola (sgocciolato, 1 lattina grande)'] },
+          { nome: 'Grassi', tipo: 'fixed', opzioni: ['10gr olio (1 cucchiaio)'] }
+        ]
+      },
+      {
+        id: 'merenda',
+        nome: 'Merenda Pomeriggio',
+        type: 'merenda',
+        categorie: [
+          { nome: '', tipo: 'radio', opzioni: ['1 Yogurt Danone Hipro 15gr', '1 Yogurt greco 0% (vasetto 150/170gr)', '1 uovo sodo', '20gr Grana'] }
+        ]
+      },
+      {
+        id: 'cena',
+        nome: 'Cena',
+        type: 'cena',
+        note: 'Verdure di stagione a volontà (max 200g se pomodori, peperoni, zucca, carota, barbabietola)',
+        categorie: [
+          { nome: 'Proteina', tipo: 'radio', opzioni: ['160gr carne (Petto pollo, Tacchino, Manzo magro, Vitello, Lonza)', '210gr pesce (Branzino, Merluzzo/Nasello, Platessa/Sogliola, Tonno naturale 135gr, Seppie, Totani, Gamberi)', '100gr Bresaola/Bresaola tacchino/Prosciutto crudo o cotto magri (Snello Rovagnati)', 'Frittata: 1 uovo + 200gr Albume', '1 Mozzarella proteica', '1 vasetto Fiocchi Di Latte Milk Pro High Protein'] },
+          { nome: 'Carboidrato', tipo: 'radio', opzioni: ['3 fette Wasa Integrale', '40gr pane integrale (metà panino)', '50gr cereale (pasta, riso normale/basmati/integrale, cous cous, riso nero, orzo, farro)', '130gr legumi in scatola (sgocciolato, 1 lattina piccola)'] },
+          { nome: 'Grassi', tipo: 'fixed', opzioni: ['10gr olio (1 cucchiaio)'] }
+        ]
+      },
+      {
+        id: 'serale',
+        nome: 'Spuntino Serale',
+        type: 'serale',
+        note: 'Solo in caso di fame',
+        categorie: [
+          { nome: '', tipo: 'radio', opzioni: ['1 Yogurt Danone Hipro 15gr', '1 Yogurt greco 0% (vasetto 150/170gr)'] }
+        ]
+      }
+    ]
+  },
+
+  scarico: {
+    label: 'Scarico Carbs',
+    macros: '1100 kcal — carb 40g — prot 170g — grassi 30g',
+    accent: 'scarico',
+    pasti: [
+      {
+        id: 'colazione',
+        nome: 'Colazione',
+        type: 'colazione',
+        alternative: [
+          {
+            nome: 'Yogurt',
+            categorie: [
+              { nome: 'Proteina', tipo: 'radio', opzioni: ['300gr di Yogurt Greco 0%', '100gr Yogurt Greco 0% + 200gr PRO High Protein crema dessert'] }
+            ]
+          },
+          {
+            nome: 'Latte',
+            categorie: [
+              { nome: 'Proteina', tipo: 'fixed', opzioni: ['200gr di latte parzialmente scremato + 40gr di proteine whey isolate'] }
+            ]
+          }
+        ]
+      },
+      {
+        id: 'spuntino_mattina',
+        nome: 'Spuntino Mattina',
+        type: 'spuntino',
+        categorie: [
+          { nome: '', tipo: 'radio', opzioni: ['1 Yogurt Danone Hipro 15gr', '1 Yogurt greco 0% (vasetto 150/170gr)', '20gr Grana'] }
+        ]
+      },
+      {
+        id: 'pranzo',
+        nome: 'Pranzo',
+        type: 'pranzo',
+        note: 'Verdure di stagione a volontà (max 200g se pomodori, peperoni, zucca, carota, barbabietola)',
+        categorie: [
+          { nome: 'Proteina', tipo: 'radio', opzioni: ['240gr carne (Petto pollo, Tacchino, Manzo magro, Vitello, Lonza)', '300gr pesce (Branzino, Merluzzo/Nasello, Platessa/Sogliola, Tonno naturale 170gr, Seppie, Totani, Gamberi)', '140gr Bresaola/Bresaola tacchino/Prosciutto crudo o cotto magri (Snello Rovagnati)', 'Frittata: 1 uovo + 300gr Albume'] },
+          { nome: 'Grassi', tipo: 'fixed', opzioni: ['10gr olio (1 cucchiaio)'] }
+        ]
+      },
+      {
+        id: 'merenda',
+        nome: 'Merenda Pomeriggio',
+        type: 'merenda',
+        categorie: [
+          { nome: '', tipo: 'radio', opzioni: ['1 Yogurt Danone Hipro 15gr', '1 Yogurt greco 0% (vasetto 150/170gr)', '1 uovo sodo', '20gr Grana'] }
+        ]
+      },
+      {
+        id: 'cena',
+        nome: 'Cena',
+        type: 'cena',
+        note: 'Verdure di stagione a volontà (max 200g se pomodori, peperoni, zucca, carota, barbabietola)',
+        categorie: [
+          { nome: 'Proteina', tipo: 'radio', opzioni: ['240gr carne (Petto pollo, Tacchino, Manzo magro, Vitello, Lonza)', '300gr pesce (Branzino, Merluzzo/Nasello, Platessa/Sogliola, Tonno naturale 135gr, Seppie, Totani, Gamberi)', '140gr Bresaola/Bresaola tacchino/Prosciutto crudo o cotto magri (Snello Rovagnati)', 'Frittata: 1 uovo + 300gr Albume'] },
+          { nome: 'Grassi', tipo: 'fixed', opzioni: ['10gr olio (1 cucchiaio)'] }
+        ]
+      },
+      {
+        id: 'serale',
+        nome: 'Spuntino Serale',
+        type: 'serale',
+        note: 'Solo in caso di fame',
+        categorie: [
+          { nome: '', tipo: 'radio', opzioni: ['1 Yogurt Danone Hipro 15gr', '1 Yogurt greco 0% (vasetto 150/170gr)'] }
+        ]
+      }
+    ]
+  }
+};
+
+// STATE
+let currentDay = 'on';
+let state = {}; // state[dayType][pastoId] = { altIdx, checks: { catIdx_optIdx: bool } }
+
+function getState(day, pastoId) {
+  if (!state[day]) state[day] = {};
+  if (!state[day][pastoId]) state[day][pastoId] = { altIdx: 0, checks: {} };
+  return state[day][pastoId];
+}
+
+function setDay(day) {
+  currentDay = day;
+  render();
+}
+
+function resetDay() {
+  if (confirm('Reset del giorno ' + currentDay.toUpperCase() + '?')) {
+    state[currentDay] = {};
+    render();
+  }
+}
+
+function toggleCheck(day, pastoId, key) {
+  const s = getState(day, pastoId);
+  s.checks[key] = !s.checks[key];
+  render();
+}
+
+function radioSelect(day, pastoId, catIdx, optIdx) {
+  const s = getState(day, pastoId);
+  // deselect others in same cat
+  Object.keys(s.checks).forEach(k => {
+    if (k.startsWith('c' + catIdx + '_')) s.checks[k] = false;
+  });
+  s.checks['c' + catIdx + '_' + optIdx] = true;
+  render();
+}
+
+function setAlt(day, pastoId, altIdx) {
+  const s = getState(day, pastoId);
+  if (s.altIdx !== altIdx) {
+    s.altIdx = altIdx;
+    s.checks = {};
+  }
+  render();
+}
+
+function countChecks() {
+  const day = DAYS[currentDay];
+  let total = 0, done = 0;
+  day.pasti.forEach(pasto => {
+    const s = getState(currentDay, pasto.id);
+    const cats = pasto.alternative ? pasto.alternative[s.altIdx].categorie : pasto.categorie;
+    cats.forEach((cat, ci) => {
+      if (cat.tipo === 'radio') {
+        total++;
+        const any = cat.opzioni.some((_, oi) => s.checks['c' + ci + '_' + oi]);
+        if (any) done++;
+      } else {
+        cat.opzioni.forEach((_, oi) => {
+          total++;
+          if (s.checks['c' + ci + '_' + oi]) done++;
+        });
+      }
+    });
+    if (pasto.extra) {
+      total++;
+      if (s.checks['pw_0']) done++;
+    }
+  });
+  return { total, done };
+}
+
+function render() {
+  // header buttons
+  ['on','off','scarico'].forEach(d => {
+    const btn = document.getElementById('btn-' + d);
+    btn.className = 'day-btn' + (d === currentDay ? ' active-' + d : '');
+  });
+
+  // macros
+  const day = DAYS[currentDay];
+  document.getElementById('macrosBar').innerHTML = day.macros.split('—').map(m =>
+    `<span class="macro-pill">${m.trim()}</span>`
+  ).join('');
+
+  // progress
+  const { total, done } = countChecks();
+  const pct = total ? Math.round(done / total * 100) : 0;
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressLabel').textContent = done + ' / ' + total;
+
+  // content
+  let html = '';
+  day.pasti.forEach((pasto, pi) => {
+    const s = getState(currentDay, pasto.id);
+    html += `<div class="meal-section">`;
+    html += `<div class="meal-label ${pasto.type}">${pasto.nome}</div>`;
+
+    if (pasto.note) {
+      html += `<div class="section-note">🥬 ${pasto.note}</div>`;
+    }
+
+    // Alternative tabs
+    if (pasto.alternative) {
+      html += `<div class="alt-tabs">`;
+      pasto.alternative.forEach((alt, ai) => {
+        html += `<button class="alt-tab${s.altIdx === ai ? ' selected' : ''}" onclick="setAlt('${currentDay}','${pasto.id}',${ai})">${alt.nome}</button>`;
+      });
+      html += `</div>`;
+
+      const cats = pasto.alternative[s.altIdx].categorie;
+      html += renderCategorie(cats, currentDay, pasto.id, s);
+    } else {
+      html += renderCategorie(pasto.categorie, currentDay, pasto.id, s);
+    }
+
+    // Extra (post workout)
+    if (pasto.extra) {
+      html += `<div class="pw-badge">${pasto.extra.label}</div>`;
+      pasto.extra.opzioni.forEach((opt, oi) => {
+        const checked = !!s.checks['pw_' + oi];
+        html += `<div class="free-item${checked ? ' checked' : ''}" onclick="togglePW('${currentDay}','${pasto.id}',${oi})">
+          <div class="free-check"></div>
+          <div class="free-text">${opt}</div>
+        </div>`;
+      });
+    }
+
+    html += `</div>`;
+    if (pi < day.pasti.length - 1) html += `<div class="divider"></div>`;
+  });
+
+  document.getElementById('content').innerHTML = html;
+}
+
+function renderCategorie(cats, day, pastoId, s) {
+  let html = '';
+  cats.forEach((cat, ci) => {
+    html += `<div class="cat-block">`;
+    if (cat.nome) html += `<div class="cat-label">${cat.nome}</div>`;
+
+    if (cat.tipo === 'radio') {
+      cat.opzioni.forEach((opt, oi) => {
+        const checked = !!s.checks['c' + ci + '_' + oi];
+        html += `<div class="option-item${checked ? ' checked' : ''}" onclick="radioSelect('${day}','${pastoId}',${ci},${oi})">
+          <div class="option-check"></div>
+          <div class="option-text">${opt}</div>
+        </div>`;
+      });
+    } else {
+      // fixed
+      cat.opzioni.forEach((opt, oi) => {
+        const checked = !!s.checks['c' + ci + '_' + oi];
+        html += `<div class="free-item${checked ? ' checked' : ''}" onclick="toggleCheck('${day}','${pastoId}','c${ci}_${oi}')">
+          <div class="free-check"></div>
+          <div class="free-text">${opt}</div>
+        </div>`;
+      });
+    }
+
+    html += `</div>`;
+  });
+  return html;
+}
+
+function togglePW(day, pastoId, oi) {
+  const s = getState(day, pastoId);
+  s.checks['pw_' + oi] = !s.checks['pw_' + oi];
+  render();
+}
+
+// Auto-detect day
+function autoDetectDay() {
+  const dayMap = { 0: 'on', 1: 'scarico', 2: 'off', 3: 'on', 4: 'off', 5: 'on', 6: 'on' };
+  // 0=dom,1=lun,2=mar... wait, js: 0=sun
+  const jsMap = { 0: 'on', 1: 'scarico', 2: 'off', 3: 'on', 4: 'off', 5: 'on', 6: 'on' };
+  const d = new Date().getDay();
+  currentDay = jsMap[d];
+}
+
+autoDetectDay();
+render();
+</script>
+</body>
+</html>
