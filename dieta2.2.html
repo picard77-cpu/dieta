@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Dieta</title>
+<style>
+  :root {
+    --bg: #f4f0e8;
+    --surface: #ede8de;
+    --surface2: #e5dfd3;
+    --border: #d5cfc3;
+    --text: #2a2a24;
+    --text-muted: #5a5a50;
+    --text-dim: #9a9a8a;
+    --check: #5a7a5a;
+    --r: 12px;
+    --rs: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 15px; line-height: 1.5; min-height: 100vh; padding-bottom: 40px; }
+
+  /* HEADER */
+  .hdr { position: sticky; top: 0; z-index: 100; background: var(--bg); border-bottom: 1px solid var(--border); padding: 14px 16px 10px; }
+  .hdr-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .app-title { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); }
+  .reset-btn { background: none; border: 1px solid var(--border); color: var(--text-muted); font-size: 12px; padding: 4px 12px; border-radius: 20px; cursor: pointer; font-family: inherit; }
+  .day-sel { display: flex; gap: 6px; }
+  .day-btn { flex: 1; padding: 7px 4px; border-radius: var(--rs); border: 1px solid var(--border); background: var(--surface); color: var(--text-muted); font-size: 11px; font-weight: 600; font-family: inherit; cursor: pointer; text-align: center; }
+  .day-btn.on  { background: rgba(90,122,90,.15); border-color: #5a7a5a; color: #3d5c3d; }
+  .day-btn.off { background: rgba(74,122,181,.15); border-color: #4a7ab5; color: #2d5a8a; }
+  .day-btn.sc  { background: rgba(196,122,58,.15); border-color: #c47a3a; color: #8a4a1a; }
+
+  /* MACROS */
+  .macros { display: flex; gap: 6px; flex-wrap: wrap; padding: 8px 16px; border-bottom: 1px solid var(--border); }
+  .mpill { font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 20px; background: var(--surface); color: var(--text-muted); }
+
+  /* PROGRESS */
+  .prog-wrap { display: flex; align-items: center; gap: 10px; padding: 8px 16px 0; }
+  .prog-bar { flex: 1; height: 3px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .prog-fill { height: 100%; background: #5a7a5a; border-radius: 3px; transition: width .3s; }
+  .prog-lbl { font-size: 11px; color: var(--text-dim); white-space: nowrap; }
+
+  /* CONTENT */
+  .content { padding: 0 16px; }
+  .meal-sec { margin-top: 18px; }
+  .meal-lbl { font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; padding: 5px 11px; border-radius: 20px; display: inline-block; margin-bottom: 10px; }
+  .meal-lbl.colazione,.meal-lbl.pranzo,.meal-lbl.cena { background: rgba(90,122,90,.12); color: #3d5c3d; }
+  .meal-lbl.spuntino,.meal-lbl.merenda { background: rgba(74,122,181,.12); color: #2d5a8a; }
+  .meal-lbl.serale { background: rgba(196,122,58,.12); color: #8a4a1a; }
+  .sec-note { font-size: 12px; color: var(--text-dim); margin-bottom: 8px; font-style: italic; }
+  .divider { height: 1px; background: var(--border); margin: 18px 0 2px; }
+
+  /* ALT TABS */
+  .alt-tabs { display: flex; gap: 6px; margin-bottom: 10px; }
+  .alt-tab { font-size: 11px; font-weight: 600; padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border); background: var(--surface); color: var(--text-dim); cursor: pointer; font-family: inherit; }
+  .alt-tab.sel { border-color: #7a9a7a; background: rgba(90,122,90,.12); color: #3d5c3d; }
+
+  /* CAT */
+  .cat-block { margin-bottom: 12px; }
+  .cat-lbl { font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 5px; padding-left: 2px; }
+
+  /* RADIO OPTION */
+  .opt { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; margin-bottom: 4px; border-radius: var(--rs); border: 1px solid var(--border); background: var(--surface); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  .opt.ck { background: rgba(90,122,90,.14); border-color: #9ab89a; }
+  .opt-circle { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--text-dim); flex-shrink: 0; margin-top: 1px; display: flex; align-items: center; justify-content: center; }
+  .opt.ck .opt-circle { background: var(--check); border-color: var(--check); }
+  .opt.ck .opt-circle::after { content: ''; width: 5px; height: 9px; border: 2px solid #f4f0e8; border-top: none; border-left: none; transform: rotate(45deg) translateY(-1px); display: block; }
+  .opt-text { font-size: 14px; color: var(--text-muted); flex: 1; line-height: 1.4; }
+  .opt.ck .opt-text { color: var(--text); }
+
+  /* SUB ITEMS */
+  .sub-list { margin-top: 6px; margin-left: 4px; display: flex; flex-direction: column; gap: 3px; }
+  .sub { display: flex; align-items: center; gap: 8px; padding: 5px 9px; border-radius: 6px; border: 1px solid #c8c2b6; background: rgba(255,255,255,.4); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  .sub.ck { background: rgba(90,122,90,.1); border-color: #9ab89a; }
+  .sub-box { width: 15px; height: 15px; border-radius: 3px; border: 1.5px solid var(--text-dim); flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .sub.ck .sub-box { background: var(--check); border-color: var(--check); }
+  .sub.ck .sub-box::after { content: ''; width: 4px; height: 7px; border: 1.5px solid #f4f0e8; border-top: none; border-left: none; transform: rotate(45deg) translateY(-1px); display: block; }
+  .sub-txt { font-size: 13px; color: var(--text-muted); }
+  .sub.ck .sub-txt { color: var(--text); }
+
+  /* FIXED ITEM */
+  .fix { display: flex; align-items: flex-start; gap: 10px; padding: 8px 12px; margin-bottom: 4px; border-radius: var(--rs); border: 1px dashed var(--border); background: transparent; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  .fix.ck { border-color: #9ab89a; background: rgba(90,122,90,.08); }
+  .fix-box { width: 18px; height: 18px; border-radius: 4px; border: 1.5px solid var(--text-dim); flex-shrink: 0; margin-top: 1px; display: flex; align-items: center; justify-content: center; }
+  .fix.ck .fix-box { background: #9ab89a; border-color: #7a9a7a; }
+  .fix.ck .fix-box::after { content: ''; width: 5px; height: 9px; border: 2px solid #f4f0e8; border-top: none; border-left: none; transform: rotate(45deg) translateY(-1px); display: block; }
+  .fix-txt { font-size: 13px; color: var(--text-dim); flex: 1; line-height: 1.4; }
+  .fix.ck .fix-txt { color: var(--text-muted); }
+
+  /* VERDURE */
+  .vrd-block { margin-bottom: 12px; }
+  .vrd-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--rs); border: 1px solid var(--border); background: var(--surface); cursor: pointer; margin-bottom: 5px; -webkit-tap-highlight-color: transparent; }
+  .vrd-row.ck { background: rgba(90,122,90,.14); border-color: #9ab89a; }
+  .vrd-box { width: 18px; height: 18px; border-radius: 4px; border: 1.5px solid var(--text-dim); flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .vrd-row.ck .vrd-box { background: var(--check); border-color: var(--check); }
+  .vrd-row.ck .vrd-box::after { content: ''; width: 5px; height: 9px; border: 2px solid #f4f0e8; border-top: none; border-left: none; transform: rotate(45deg) translateY(-1px); display: block; }
+  .vrd-lbl { font-size: 14px; color: var(--text-muted); flex: 1; }
+  .vrd-row.ck .vrd-lbl { color: var(--text); }
+  .vrd-input { width: 100%; padding: 7px 12px; border-radius: var(--rs); border: 1px dashed #9ab89a; background: rgba(90,122,90,.05); font-family: inherit; font-size: 13px; color: var(--text); outline: none; resize: none; }
+  .vrd-input::placeholder { color: var(--text-dim); }
+
+  /* PW BADGE */
+  .pw-badge { font-size: 10px; font-weight: 700; letter-spacing: .08em; color: #8a4a1a; background: rgba(196,122,58,.12); padding: 2px 7px; border-radius: 10px; display: inline-block; margin-bottom: 4px; }
+
+  /* ACQUA */
+  .acqua { margin: 22px 16px 8px; padding: 15px; border-radius: var(--r); border: 1px solid var(--border); background: var(--surface); }
+  .acq-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .acq-title { font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #2d5a8a; }
+  .acq-tot { font-size: 13px; color: var(--text-muted); font-weight: 600; }
+  .acq-tot b { color: #2d5a8a; font-size: 17px; }
+  .acq-bar-wrap { height: 6px; background: var(--border); border-radius: 6px; overflow: hidden; margin-bottom: 12px; }
+  .acq-bar { height: 100%; background: #4a7ab5; border-radius: 6px; transition: width .3s; }
+  .acq-ctrl { display: flex; align-items: center; gap: 10px; }
+  .acq-inp-wrap { flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px; border: 1px solid var(--border); border-radius: var(--rs); background: var(--bg); padding: 7px 10px; }
+  .acq-inp { border: none; background: transparent; font-family: inherit; font-size: 18px; font-weight: 700; color: var(--text); width: 70px; text-align: center; outline: none; }
+  .acq-unit { font-size: 12px; color: var(--text-dim); }
+  .acq-btn { width: 42px; height: 42px; border-radius: 50%; border: none; font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-family: inherit; }
+  .acq-btn.minus { background: var(--surface2); color: var(--text-muted); }
+  .acq-btn.plus  { background: #4a7ab5; color: white; }
+  .acq-note { font-size: 11px; color: var(--text-dim); text-align: center; margin-top: 9px; }
+  .acq-ok { font-size: 12px; font-weight: 600; color: #3d5c3d; text-align: center; margin-top: 6px; display: none; }
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-top">
+    <span class="app-title">Dieta</span>
+    <button class="reset-btn" onclick="resetDay()">Reset giorno</button>
+  </div>
+  <div class="day-sel">
+    <button class="day-btn" id="btn-on"      onclick="setDay('on')">ON<br><span style="font-size:10px;font-weight:400">mar gio sab dom</span></button>
+    <button class="day-btn" id="btn-off"     onclick="setDay('off')">OFF<br><span style="font-size:10px;font-weight:400">mer ven</span></button>
+    <button class="day-btn" id="btn-scarico" onclick="setDay('scarico')">SCARICO<br><span style="font-size:10px;font-weight:400">lun</span></button>
+  </div>
+</div>
+
+<div class="prog-wrap">
+  <div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+  <span class="prog-lbl" id="progLbl">0 / 0</span>
+</div>
+<div class="macros" id="macros"></div>
+<div class="content" id="content"></div>
+
+<div class="acqua">
+  <div class="acq-hdr">
+    <span class="acq-title">Acqua</span>
+    <span class="acq-tot"><b id="acqMl">0</b> / 3250 ml</span>
+  </div>
+  <div class="acq-bar-wrap"><div class="acq-bar" id="acqBar" style="width:0%"></div></div>
+  <div class="acq-ctrl">
+    <button class="acq-btn minus" onclick="acqChange(-1)">-</button>
+    <div class="acq-inp-wrap">
+      <input class="acq-inp" id="acqQty" type="number" value="300" min="50" max="1000" step="50">
+      <span class="acq-unit">ml</span>
+    </div>
+    <button class="acq-btn plus" onclick="acqChange(1)">+</button>
+  </div>
+  <div class="acq-note" id="acqNote">Obiettivo: 3250 ml</div>
+  <div class="acq-ok"  id="acqOk">Obiettivo raggiunto!</div>
+</div>
+
+<script>
+// ── DATI ─────────────────────────────────────────────────────────────────
+var D = {
+  on: {
+    macros: '1750 kcal | carb 210g | prot 160g | grassi 30g',
+    pasti: [
+      { id:'col', nome:'Colazione', type:'colazione',
+        alt: [
+          { nome:'Yogurt', cats: [
+            { nome:'Proteina', tipo:'radio', opts:[{l:'200gr Yogurt Greco 0%'},{l:'200gr PRO High Protein crema dessert'}] },
+            { nome:'Carboidrato', tipo:'radio', opts:[{l:'6 fette biscottate'},{l:'60gr farro soffiato'},{l:'60gr fiocchi d\'avena'}] },
+            { nome:'', tipo:'fixed', opts:[{l:'20gr di miele'}] }
+          ]},
+          { nome:'Latte Proteico', cats: [
+            { nome:'Proteina', tipo:'fixed', opts:[{l:'200gr latte parzialmente scremato + 30gr proteine whey isolate'}] },
+            { nome:'Carboidrato', tipo:'radio', opts:[{l:'6 fette biscottate'},{l:'60gr fiocchi di mais (o altri cereali)'}] },
+            { nome:'', tipo:'fixed', opts:[{l:'20gr di miele'}] }
+          ]}
+        ]
+      },
+      { id:'spm', nome:'Spuntino Mattina', type:'spuntino',
+        cats: [{ nome:'', tipo:'radio', opts:[{l:'1 Yogurt Danone Hipro 15gr'},{l:'1 Yogurt greco 0% (vasetto 150/170gr)'},{l:'20gr Grana'}] }]
+      },
+      { id:'pra', nome:'Pranzo', type:'pranzo', verdure:true,
+        cats: [
+          { nome:'Proteina', tipo:'radio', opts:[
+            {l:'Carne 160gr', sub:['Petto di pollo','Tacchino','Manzo magro','Vitello','Lonza']},
+            {l:'Pesce 210gr', sub:['Branzino','Merluzzo/Nasello','Platessa/Sogliola','Tonno naturale 135gr','Seppie','Totani','Gamberi']},
+            {l:'100gr Bresaola / Prosciutto crudo o cotto magri (Snello Rovagnati)'},
+            {l:'Frittata: 1 uovo + 200gr Albume'},
+            {l:'1 Mozzarella proteica'},
+            {l:'1 vasetto Fiocchi Di Latte Milk Pro High Protein'}
+          ]},
+          { nome:'Carboidrato', tipo:'radio', opts:[
+            {l:'140gr pane'},
+            {l:'100gr cereale', sub:['Pasta integrale','Riso','Cous cous','Riso nero','Orzo','Farro']},
+            {l:'200gr legumi in scatola (1 lattina grande)'}
+          ]},
+          { nome:'Grassi', tipo:'fixed', opts:[{l:'5gr olio (1 cucchiaino)'}] }
+        ]
+      },
+      { id:'mer', nome:'Merenda Pomeriggio', type:'merenda',
+        cats: [
+          { nome:'Proteina / Snack', tipo:'radio', opts:[{l:'1 Yogurt Danone Hipro 15gr'},{l:'1 Yogurt greco 0% (vasetto 150/170gr)'},{l:'1 uovo sodo'},{l:'20gr Grana'}] },
+          { nome:'Carboidrato', tipo:'radio', opts:[{l:'2 fette Wasa Integrale'},{l:'120/150gr frutta di stagione'}] }
+        ],
+        pw: '30gr proteine whey isolate + acqua'
+      },
+      { id:'cen', nome:'Cena', type:'cena', verdure:true,
+        cats: [
+          { nome:'Proteina', tipo:'radio', opts:[
+            {l:'Carne 160gr', sub:['Petto di pollo','Tacchino','Manzo magro','Vitello','Lonza']},
+            {l:'Pesce 210gr', sub:['Branzino','Merluzzo/Nasello','Platessa/Sogliola','Tonno naturale 135gr','Seppie','Totani','Gamberi']},
+            {l:'100gr Bresaola / Prosciutto crudo o cotto magri (Snello Rovagnati)'},
+            {l:'Frittata: 1 uovo + 300gr Albume'},
+            {l:'1 Mozzarella proteica'},
+            {l:'1 vasetto Fiocchi Di Latte Milk Pro High Protein'}
+          ]},
+          { nome:'Carboidrato', tipo:'radio', opts:[
+            {l:'5 fette Wasa Integrale'},
+            {l:'70gr pane integrale'},
+            {l:'50gr cereale', sub:['Pasta','Pasta integrale','Riso normale','Riso basmati','Riso integrale','Cous cous','Riso nero','Orzo','Farro']},
+            {l:'120gr gnocchi di patate o spatzle'},
+            {l:'200gr legumi in scatola (1 lattina grande)'}
+          ]},
+          { nome:'Grassi', tipo:'fixed', opts:[{l:'5gr olio (1 cucchiaino)'}] }
+        ]
+      },
+      { id:'ser', nome:'Spuntino Serale', type:'serale', note:'Solo in caso di fame',
+        cats: [{ nome:'', tipo:'radio', opts:[{l:'1 Yogurt Danone Hipro 15gr'},{l:'1 Yogurt greco 0% (vasetto 150/170gr)'}] }]
+      }
+    ]
+  },
+  off: {
+    macros: '1500 kcal | carb 140g | prot 150g | grassi 30/35g',
+    pasti: [
+      { id:'col', nome:'Colazione', type:'colazione',
+        alt: [
+          { nome:'Yogurt', cats: [
+            { nome:'Proteina', tipo:'radio', opts:[{l:'200gr Yogurt Greco 0%'},{l:'200gr PRO High Protein crema dessert'}] },
+            { nome:'Carboidrato', tipo:'radio', opts:[{l:'6 fette biscottate'},{l:'60gr farro soffiato'},{l:'60gr fiocchi d\'avena'}] }
+          ]},
+          { nome:'Latte', cats: [
+            { nome:'Proteina', tipo:'fixed', opts:[{l:'200gr latte parzialmente scremato + 30gr proteine whey isolate'}] },
+            { nome:'Carboidrato', tipo:'radio', opts:[{l:'6 fette biscottate'},{l:'60gr farro soffiato'},{l:'60gr fiocchi d\'avena'}] }
+          ]}
+        ]
+      },
+      { id:'spm', nome:'Spuntino Mattina', type:'spuntino',
+        cats: [{ nome:'', tipo:'radio', opts:[{l:'1 Yogurt Danone Hipro 15gr'},{l:'1 Yogurt greco 0% (vasetto 150/170gr)'},{l:'20gr Grana'}] }]
+      },
+      { id:'pra', nome:'Pranzo', type:'pranzo', verdure:true,
+        cats: [
+          { nome:'Proteina', tipo:'radio', opts:[
+            {l:'Carne 160gr', sub:['Petto di pollo','Tacchino','Manzo magro','Vitello','Lonza']},
+            {l:'Pesce 210gr', sub:['Branzino','Merluzzo/Nasello','Platessa/Sogliola','Tonno naturale 135gr','Seppie','Totani','Gamberi']},
+            {l:'100gr Bresaola / Prosciutto crudo o cotto magri (Snello Rovagnati)'},
+            {l:'Frittata: 1 uovo + 200gr Albume'},
+            {l:'1 Mozzarella proteica'},
+            {l:'1 vasetto Fiocchi Di Latte Milk Pro High Protein'}
+          ]},
+          { nome:'Carboidrato', tipo:'radio', opts:[
+            {l:'5 fette Wasa Integrale'},
+            {l:'70gr pane integrale'},
+            {l:'50gr cereale', sub:['Pasta integrale','Riso','Cous cous','Riso nero','Orzo','Farro']},
+            {l:'200gr legumi in scatola (1 lattina grande)'}
+          ]},
+          { nome:'Grassi', tipo:'fixed', opts:[{l:'10gr olio (1 cucchiaio)'}] }
+        ]
+      },
+      { id:'mer', nome:'Merenda Pomeriggio', type:'merenda',
+        cats: [{ nome:'', tipo:'radio', opts:[{l:'1 Yogurt Danone Hipro 15gr'},{l:'1 Yogurt greco 0% (vasetto 150/170gr)'},{l:'1 uovo sodo'},{l:'20gr Grana'}] }]
+      },
+      { id:'cen', nome:'Cena', type:'cena', verdure:true,
+        cats: [
+          { nome:'Proteina', tipo:'radio', opts:[
+            {l:'Carne 160gr', sub:['Petto di pollo','Tacchino','Manzo magro','Vitello','Lonza']},
+            {l:'Pesce 210gr', sub:['Branzino','Merluzzo/Nasello','Platessa/Sogliola','Tonno naturale 135gr','Seppie','Totani','Gamberi']},
+            {l:'100gr Bresaola / Prosciutto crudo o cotto magri (Snello Rovagnati)'},
+            {l:'Frittata: 1 uovo + 200gr Albume'},
+            {l:'1 Mozzarella proteica'},
+            {l:'1 vasetto Fiocchi Di Latte Milk Pro High Protein'}
+          ]},
+          { nome:'Carboidrato', tipo:'radio', opts:[
+            {l:'3 fette Wasa Integrale'},
+            {l:'40gr pane integrale (meta panino)'},
+            {l:'50gr cereale', sub:['Pasta','Pasta integrale','Riso normale','Riso basmati','Riso integrale','Cous cous','Riso nero','Orzo','Farro']},
+            {l:'130gr legumi in scatola (1 lattina piccola)'}
+          ]},
+          { nome:'Grassi', tipo:'fixed', opts:[{l:'10gr olio (1 cucchiaio)'}] }
+        ]
+      },
+      { id:'ser', nome:'Spuntino Serale', type:'serale', note:'Solo in caso di fame',
+        cats: [{ nome:'', tipo:'radio', opts:[{l:'1 Yogurt Danone Hipro 15gr'},{l:'1 Yogurt greco 0% (vasetto 150/170gr)'}] }]
+      }
+    ]
+  },
+  scarico: {
+    macros: '1100 kcal | carb 40g | prot 170g | grassi 30g',
+    pasti: [
+      { id:'col', nome:'Colazione', type:'colazione',
+        alt: [
+          { nome:'Yogurt', cats: [
+            { nome:'Proteina', tipo:'radio', opts:[{l:'300gr Yogurt Greco 0%'},{l:'100gr Yogurt Greco 0% + 200gr PRO High Protein crema dessert'}] }
+          ]},
+          { nome:'Latte', cats: [
+            { nome:'Proteina', tipo:'fixed', opts:[{l:'200gr latte parzialmente scremato + 40gr proteine whey isolate'}] }
+          ]}
+        ]
+      },
+      { id:'spm', nome:'Spuntino Mattina', type:'spuntino',
+        cats: [{ nome:'', tipo:'radio', opts:[{l:'1 Yogurt Danone Hipro 15gr'},{l:'1 Yogurt greco 0% (vasetto 150/170gr)'},{l:'20gr Grana'}] }]
+      },
+      { id:'pra', nome:'Pranzo', type:'pranzo', verdure:true,
+        cats: [
+          { nome:'Proteina', tipo:'radio', opts:[
+            {l:'Carne 240gr', sub:['Petto di pollo','Tacchino','Manzo magro','Vitello','Lonza']},
+            {l:'Pesce 300gr', sub:['Branzino','Merluzzo/Nasello','Platessa/Sogliola','Tonno naturale 170gr','Seppie','Totani','Gamberi']},
+            {l:'140gr Bresaola / Prosciutto crudo o cotto magri (Snello Rovagnati)'},
+            {l:'Frittata: 1 uovo + 300gr Albume'}
+          ]},
+          { nome:'Grassi', tipo:'fixed', opts:[{l:'10gr olio (1 cucchiaio)'}] }
+        ]
+      },
+      { id:'mer', nome:'Merenda Pomeriggio', type:'merenda',
+        cats: [{ nome:'', tipo:'radio', opts:[{l:'1 Yogurt Danone Hipro 15gr'},{l:'1 Yogurt greco 0% (vasetto 150/170gr)'},{l:'1 uovo sodo'},{l:'20gr Grana'}] }]
+      },
+      { id:'cen', nome:'Cena', type:'cena', verdure:true,
+        cats: [
+          { nome:'Proteina', tipo:'radio', opts:[
+            {l:'Carne 240gr', sub:['Petto di pollo','Tacchino','Manzo magro','Vitello','Lonza']},
+            {l:'Pesce 300gr', sub:['Branzino','Merluzzo/Nasello','Platessa/Sogliola','Tonno naturale 135gr','Seppie','Totani','Gamberi']},
+            {l:'140gr Bresaola / Prosciutto crudo o cotto magri (Snello Rovagnati)'},
+            {l:'Frittata: 1 uovo + 300gr Albume'}
+          ]},
+          { nome:'Grassi', tipo:'fixed', opts:[{l:'10gr olio (1 cucchiaio)'}] }
+        ]
+      },
+      { id:'ser', nome:'Spuntino Serale', type:'serale', note:'Solo in caso di fame',
+        cats: [{ nome:'', tipo:'radio', opts:[{l:'1 Yogurt Danone Hipro 15gr'},{l:'1 Yogurt greco 0% (vasetto 150/170gr)'}] }]
+      }
+    ]
+  }
+};
+
+// ── STATE ────────────────────────────────────────────────────────────────
+var curDay = 'on';
+var ST = {};
+var SKEY='dieta_v22';
+function saveST(){ try{ localStorage.setItem(SKEY, JSON.stringify({day:curDay, st:ST, acq:(typeof acqTot!=='undefined'?acqTot:0)})); }catch(e){} }
+function loadST(){ try{ var raw=localStorage.getItem(SKEY); if(raw){ var o=JSON.parse(raw); if(o.st)ST=o.st; if(o.day)curDay=o.day; if(typeof o.acq==='number')acqTot=o.acq; } }catch(e){} }
+
+
+function gs(d,id) {
+  if(!ST[d]) ST[d]={};
+  if(!ST[d][id]) ST[d][id]={ai:0,ck:{},tx:{}};
+  return ST[d][id];
+}
+
+function setDay(d){ curDay=d; render(); }
+
+function resetDay(){
+  if(confirm('Reset giorno '+curDay.toUpperCase()+'?')){ ST[curDay]={}; saveST(); render(); }
+}
+
+function radioSel(d,id,ci,oi){
+  var s=gs(d,id);
+  Object.keys(s.ck).forEach(function(k){ if(k.indexOf('c'+ci+'_')===0) s.ck[k]=false; });
+  s.ck['c'+ci+'_'+oi]=true;
+  render();
+}
+
+function toggleFix(d,id,k){ var s=gs(d,id); s.ck[k]=!s.ck[k]; render(); }
+
+function toggleSub(d,id,ci,oi,si,e){
+  e.stopPropagation();
+  var s=gs(d,id); var k='s'+ci+'_'+oi+'_'+si; s.ck[k]=!s.ck[k]; render();
+}
+
+function setAlt(d,id,ai){
+  var s=gs(d,id); if(s.ai!==ai){ s.ai=ai; s.ck={}; s.tx={}; } render();
+}
+
+function toggleVrd(d,id){ var s=gs(d,id); s.ck['vrd']=!s.ck['vrd']; render(); }
+
+function saveVrd(d,id,v){ var s=gs(d,id); s.tx['vrd']=v;  saveST(); }
+
+function togglePW(d,id){ var s=gs(d,id); s.ck['pw']=!s.ck['pw']; render(); }
+
+// ── PROGRESS ─────────────────────────────────────────────────────────────
+function countCk(){
+  var day=D[curDay]; var total=0,done=0;
+  day.pasti.forEach(function(p){
+    var s=gs(curDay,p.id);
+    if(p.verdure){ total++; if(s.ck['vrd']) done++; }
+    var cats=p.alt ? p.alt[s.ai].cats : p.cats;
+    cats.forEach(function(cat,ci){
+      if(cat.tipo==='radio'){ total++; if(cat.opts.some(function(_,oi){ return s.ck['c'+ci+'_'+oi]; })) done++; }
+      else { cat.opts.forEach(function(_,oi){ total++; if(s.ck['c'+ci+'_'+oi]) done++; }); }
+    });
+    if(p.pw){ total++; if(s.ck['pw']) done++; }
+  });
+  return {total:total,done:done};
+}
+
+// ── RENDER ───────────────────────────────────────────────────────────────
+function render(){ saveST();
+  ['on','off','scarico'].forEach(function(d){
+    var btn=document.getElementById('btn-'+d);
+    var cls='day-btn';
+    if(d===curDay) cls+=' '+(d==='scarico'?'sc':d);
+    btn.className=cls;
+  });
+
+  var day=D[curDay];
+  document.getElementById('macros').innerHTML=day.macros.split('|').map(function(m){
+    return '<span class="mpill">'+m.trim()+'</span>';
+  }).join('');
+
+  var r=countCk();
+  var pct=r.total?Math.round(r.done/r.total*100):0;
+  document.getElementById('progFill').style.width=pct+'%';
+  document.getElementById('progLbl').textContent=r.done+' / '+r.total;
+
+  var html='';
+  day.pasti.forEach(function(p,pi){
+    var s=gs(curDay,p.id);
+    html+='<div class="meal-sec">';
+    html+='<div class="meal-lbl '+p.type+'">'+p.nome+'</div>';
+    if(p.note) html+='<div class="sec-note">'+p.note+'</div>';
+
+    if(p.verdure){
+      var vc=s.ck['vrd']?' ck':'';
+      var vt=s.tx['vrd']||'';
+      html+='<div class="vrd-block">';
+      html+='<div class="cat-lbl">Verdure</div>';
+      html+='<div class="vrd-row'+vc+'" onclick="toggleVrd(\''+curDay+'\',\''+p.id+'\')">';
+      html+='<div class="vrd-box"></div>';
+      html+='<div class="vrd-lbl">Verdure di stagione a volonta <span style="font-size:11px;color:var(--text-dim)">(max 200g se pomodori, peperoni, zucca, carota, barbabietola)</span></div>';
+      html+='</div>';
+      html+='<textarea class="vrd-input" rows="2" placeholder="Annotazione verdure..." oninput="saveVrd(\''+curDay+'\',\''+p.id+'\',this.value)">'+vt+'</textarea>';
+      html+='</div>';
+    }
+
+    if(p.alt){
+      html+='<div class="alt-tabs">';
+      p.alt.forEach(function(a,ai){
+        html+='<button class="alt-tab'+(s.ai===ai?' sel':'')+'" onclick="setAlt(\''+curDay+'\',\''+p.id+'\','+ai+')">'+a.nome+'</button>';
+      });
+      html+='</div>';
+      html+=renderCats(p.alt[s.ai].cats,p.id,s);
+    } else {
+      html+=renderCats(p.cats,p.id,s);
+    }
+
+    if(p.pw){
+      var pwc=s.ck['pw']?' ck':'';
+      html+='<div class="pw-badge">POST WORKOUT</div>';
+      html+='<div class="fix'+pwc+'" onclick="togglePW(\''+curDay+'\',\''+p.id+'\')">';
+      html+='<div class="fix-box"></div><div class="fix-txt">'+p.pw+'</div></div>';
+    }
+
+    html+='</div>';
+    if(pi<day.pasti.length-1) html+='<div class="divider"></div>';
+  });
+
+  document.getElementById('content').innerHTML=html;
+}
+
+function renderCats(cats,pid,s){
+  var html='';
+  cats.forEach(function(cat,ci){
+    html+='<div class="cat-block">';
+    if(cat.nome) html+='<div class="cat-lbl">'+cat.nome+'</div>';
+    if(cat.tipo==='radio'){
+      cat.opts.forEach(function(opt,oi){
+        var ck=s.ck['c'+ci+'_'+oi];
+        html+='<div class="opt'+(ck?' ck':'')+'" onclick="radioSel(\''+curDay+'\',\''+pid+'\','+ci+','+oi+')">';
+        html+='<div class="opt-circle"></div>';
+        html+='<div class="opt-text"><div>'+opt.l+'</div>';
+        if(opt.sub && ck){
+          html+='<div class="sub-list">';
+          opt.sub.forEach(function(sub,si){
+            var sc=s.ck['s'+ci+'_'+oi+'_'+si];
+            html+='<div class="sub'+(sc?' ck':'')+'" onclick="toggleSub(\''+curDay+'\',\''+pid+'\','+ci+','+oi+','+si+',event)">';
+            html+='<div class="sub-box"></div><div class="sub-txt">'+sub+'</div></div>';
+          });
+          html+='</div>';
+        }
+        html+='</div></div>';
+      });
+    } else {
+      cat.opts.forEach(function(opt,oi){
+        var ck=s.ck['c'+ci+'_'+oi];
+        html+='<div class="fix'+(ck?' ck':'')+'" onclick="toggleFix(\''+curDay+'\',\''+pid+'\',\'c'+ci+'_'+oi+'\')">';
+        html+='<div class="fix-box"></div><div class="fix-txt">'+opt.l+'</div></div>';
+      });
+    }
+    html+='</div>';
+  });
+  return html;
+}
+
+// ── ACQUA ────────────────────────────────────────────────────────────────
+var acqTot=0;
+var ACQ_TARGET=3250;
+
+function acqChange(sign){
+  var qty=parseInt(document.getElementById('acqQty').value)||300;
+  acqTot=Math.max(0,acqTot+(sign*qty));
+  renderAcq();
+}
+
+function renderAcq(){ saveST();
+  var pct=Math.min(100,Math.round(acqTot/ACQ_TARGET*100));
+  document.getElementById('acqMl').textContent=acqTot;
+  document.getElementById('acqBar').style.width=pct+'%';
+  var note=document.getElementById('acqNote');
+  var ok=document.getElementById('acqOk');
+  if(acqTot>=ACQ_TARGET){
+    note.style.display='none';
+    ok.style.display='block';
+    ok.textContent='Obiettivo raggiunto! ('+acqTot+' ml)';
+  } else {
+    note.style.display='block';
+    note.textContent='Mancano '+(ACQ_TARGET-acqTot)+' ml all\'obiettivo';
+    ok.style.display='none';
+  }
+}
+
+// ── INIT ─────────────────────────────────────────────────────────────────
+var jsMap={0:'on',1:'scarico',2:'off',3:'on',4:'off',5:'on',6:'on'};
+var _hadSave=false; try{ _hadSave=!!localStorage.getItem(SKEY); }catch(e){}
+loadST();
+if(!_hadSave){ curDay=jsMap[new Date().getDay()]; }
+render(); renderAcq();
+</script>
+</body>
+</html>
