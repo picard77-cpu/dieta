@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Piano post-cut · 3 ago → 20 set 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#111820;
+  --paper:#EDF0F1;
+  --card:#FFFFFF;
+  --muted:#6B7A82;
+  --line:#D3DADD;
+  --struct:#0E7C86;
+  --refeed:#C8791A;
+  --free:#B4485F;
+  --measure:#4B4FA6;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:"IBM Plex Sans",system-ui,-apple-system,sans-serif;
+  font-size:15px;
+  line-height:1.5;
+  padding:0 0 60px;
+}
+.wrap{max-width:680px;margin:0 auto;padding:0 14px}
+header{padding:34px 0 22px}
+.eyebrow{
+  font-family:"IBM Plex Mono",monospace;
+  font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--muted);margin-bottom:10px;
+}
+h1{
+  font-family:"Barlow Condensed",Impact,sans-serif;
+  font-weight:700;font-size:clamp(40px,13vw,66px);
+  line-height:.9;letter-spacing:-.01em;text-transform:uppercase;
+}
+h1 span{display:block;color:var(--struct)}
+.thesis{
+  margin-top:14px;font-size:15px;color:#2A353D;max-width:46ch;
+  border-left:3px solid var(--ink);padding-left:12px;
+}
+.map{margin:26px 0 8px}
+.map-label{
+  font-family:"IBM Plex Mono",monospace;font-size:10px;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
+  display:flex;justify-content:space-between;margin-bottom:7px;
+}
+.ticks{display:flex;gap:2px;height:38px;align-items:flex-end}
+.tick{
+  flex:1;border:0;padding:0;border-radius:2px 2px 0 0;
+  cursor:pointer;opacity:.85;transition:opacity .15s,transform .15s;
+}
+.tick:hover,.tick:focus-visible{opacity:1;transform:scaleY(1.12);outline:none}
+.tick:focus-visible{box-shadow:0 0 0 2px var(--ink)}
+.t-struct{background:var(--struct);height:60%}
+.t-refeed{background:var(--refeed);height:100%}
+.t-free{background:var(--free);height:78%}
+.legend{
+  display:flex;flex-wrap:wrap;gap:6px;margin:16px 0 30px;
+}
+.lg{
+  display:flex;align-items:center;gap:6px;
+  font-family:"IBM Plex Mono",monospace;font-size:11px;
+  background:var(--card);border:1px solid var(--line);
+  padding:5px 9px;border-radius:3px;
+}
+.dot{width:9px;height:9px;border-radius:2px;flex:none}
+.phase{margin-bottom:34px;scroll-margin-top:14px}
+.phase-head{
+  border-top:2px solid var(--ink);padding-top:10px;
+  display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;
+}
+.num{
+  font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:600;
+  color:var(--muted);
+}
+.phase-name{
+  font-family:"Barlow Condensed",sans-serif;font-weight:700;
+  font-size:26px;text-transform:uppercase;line-height:1;letter-spacing:.01em;
+}
+.phase-dates{
+  font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--muted);
+  margin-left:auto;
+}
+.phase-rule{
+  font-size:14px;color:#2A353D;margin:8px 0 14px;
+}
+.macros{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.macros.one{grid-template-columns:1fr}
+.mcard{
+  background:var(--card);border:1px solid var(--line);
+  border-left:4px solid var(--struct);border-radius:4px;padding:11px 12px;
+}
+.mcard.refeed{border-left-color:var(--refeed)}
+.mcard-tag{
+  font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--muted);
+}
+.kcal{
+  font-family:"IBM Plex Mono",monospace;font-weight:600;
+  font-size:27px;line-height:1.15;margin:2px 0 6px;
+  font-variant-numeric:tabular-nums;
+}
+.split{display:flex;gap:11px;font-family:"IBM Plex Mono",monospace;font-size:12px}
+.split b{display:block;font-size:10px;color:var(--muted);font-weight:500;letter-spacing:.08em}
+.split i{font-style:normal;font-weight:600;font-variant-numeric:tabular-nums}
+.days{background:var(--card);border:1px solid var(--line);border-radius:4px;overflow:hidden}
+.day{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 11px;border-bottom:1px solid var(--line);
+  border-left:4px solid transparent;
+  scroll-margin-top:80px;
+}
+.day:last-child{border-bottom:0}
+.day.s{border-left-color:var(--struct)}
+.day.r{border-left-color:var(--refeed);background:#FDF7EE}
+.day.f{border-left-color:var(--free);background:#FCF3F5}
+.day.flash{animation:flash 1.4s ease-out}
+@keyframes flash{0%{background:#FFF3C4}100%{}}
+.date{
+  font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:600;
+  width:56px;flex:none;font-variant-numeric:tabular-nums;
+}
+.date em{display:block;font-style:normal;font-weight:400;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.what{flex:1;font-size:13px;min-width:0}
+.what strong{font-weight:600}
+.what small{display:block;font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+.badge{
+  font-family:"IBM Plex Mono",monospace;font-size:10px;font-weight:600;
+  letter-spacing:.06em;padding:3px 6px;border-radius:3px;flex:none;
+  background:var(--measure);color:#fff;text-transform:uppercase;
+}
+.rules{background:var(--card);border:1px solid var(--line);border-radius:4px;padding:12px 14px;margin-bottom:14px}
+.rules li{list-style:none;font-size:14px;padding:6px 0 6px 24px;position:relative;border-bottom:1px solid #EEF1F2}
+.rules li:last-child{border-bottom:0}
+.rules li::before{position:absolute;left:0;top:6px;font-size:13px}
+.ok::before{content:"✅"}
+.no::before{content:"❌"}
+.warn::before{content:"⚠️"}
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:4px;overflow:hidden}
+th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line);font-size:13px}
+th{
+  font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--muted);font-weight:500;
+}
+td.n{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:0}
+.closer{border-top:2px solid var(--ink);padding-top:14px;margin-top:34px}
+.closer h2{font-family:"Barlow Condensed",sans-serif;font-size:24px;text-transform:uppercase;margin-bottom:10px}
+.note{font-size:13px;color:var(--muted);margin-top:14px;line-height:1.6}
+.big{
+  font-family:"Barlow Condensed",sans-serif;font-weight:700;
+  font-size:clamp(26px,7vw,36px);line-height:1.05;text-transform:uppercase;
+  margin:18px 0 6px;
+}
+.big em{font-style:normal;color:var(--struct)}
+@media (max-width:420px){
+  .macros{grid-template-columns:1fr}
+  .phase-dates{margin-left:0;width:100%}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none !important;transition:none !important}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">Post-cut · reverse controllato · 49 giorni</div>
+  <h1>Dal 3 ago<span>al 20 set</span></h1>
+  <p class="thesis">Il cut è chiuso. Da qui l'obiettivo non è difendere 57 kg: è riaprire il metabolismo e arrivare a metà settembre con i carichi recuperabili e i grassi a livello fisiologico.</p>
+
+  <div class="map">
+    <div class="map-label"><span>3 ago</span><span>tocca un giorno</span><span>20 set</span></div>
+    <div class="ticks" id="ticks"></div>
+  </div>
+
+  <div class="legend">
+    <span class="lg"><span class="dot" style="background:var(--struct)"></span>Struttura ON/OFF</span>
+    <span class="lg"><span class="dot" style="background:var(--refeed)"></span>Refeed</span>
+    <span class="lg"><span class="dot" style="background:var(--free)"></span>Vacanza · regole</span>
+    <span class="lg"><span class="dot" style="background:var(--measure)"></span>Misurazione</span>
+  </div>
+</header>
+
+<div id="phases"></div>
+
+<div class="closer">
+  <h2>Linee rosse</h2>
+  <table>
+    <tr><th>Marker</th><th>Soglia</th><th>Azione</th></tr>
+    <tr><td>Vita</td><td class="n">&gt; 72 cm</td><td>Congela lo step, non avanzare</td></tr>
+    <tr><td>Vita</td><td class="n">&gt; 74 cm</td><td>Torna allo step precedente per 10 giorni</td></tr>
+    <tr><td>Peso</td><td class="n">&gt; 60,5 kg</td><td>Fuori dai post-vacanza: guarda la vita prima di reagire</td></tr>
+  </table>
+
+  <p class="big">La vita comanda,<br><em>non la bilancia.</em></p>
+  <p class="note">Se il peso sale e la vita resta ≤ 71 cm, il piano sta funzionando: stai ricostruendo glicogeno e massa magra, non grasso.</p>
+
+  <h2 style="margin-top:30px">Traiettoria attesa</h2>
+  <table>
+    <tr><th>Data</th><th>Peso</th><th>Lettura</th></tr>
+    <tr><td class="n">2 ago</td><td class="n">57,0–57,1</td><td>Fine cut</td></tr>
+    <tr><td class="n">10 ago</td><td class="n">57,8–58,2</td><td>Refill glicogeno, non grasso</td></tr>
+    <tr><td class="n">18 ago</td><td class="n">58,4–59,0</td><td>Post Parigi</td></tr>
+    <tr><td class="n">28 ago</td><td class="n">58,5–59,2</td><td>Post Abruzzo</td></tr>
+    <tr><td class="n">4 set</td><td class="n">58,3–58,8</td><td>Pre-crociera</td></tr>
+    <tr><td class="n">15 set</td><td class="n">59,5–60,5</td><td>Post crociera, gonfio</td></tr>
+    <tr><td class="n">20 set</td><td class="n">58,8–59,3</td><td>Stabilizzato = base ipertrofia</td></tr>
+  </table>
+
+  <p class="note">Integratori invariati per tutto il periodo, vacanze incluse: creatina 5 g · D3 2000 IU · omega-3 2000 mg. Idratazione 3 L+ ogni giorno, compresi quelli liberi.<br><br>
+  Lo scarico carbo non compare più in nessun punto del piano: ha esaurito la sua funzione.</p>
+</div>
+
+</div>
+
+<script>
+const STEP = {
+  s1:{on:{k:1950,c:230,p:155,g:45}, off:{k:1700,c:160,p:150,g:50}},
+  s2:{on:{k:2050,c:250,p:155,g:45}, off:{k:1800,c:185,p:150,g:50}},
+  s3:{on:{k:2150,c:275,p:155,g:45}, off:{k:1900,c:200,p:150,g:52}},
+  s4:{on:{k:2250,c:290,p:155,g:48}, off:{k:2000,c:215,p:150,g:55}}
+};
+const REFEED = {k:2200,c:330,p:150,g:30};
+
+const WD=['dom','lun','mar','mer','gio','ven','sab'];
+const MO=['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
+const d=(m,day)=>new Date(2026,m-1,day);
+const lbl=dt=>`${dt.getDate()} ${MO[dt.getMonth()]}`;
+
+const PHASES=[
+ {n:'01',name:'Refeed + avvio reverse',dates:'3 → 10 agosto',kind:'s',
+  rule:'Due refeed chirurgici che riaprono la leptina, poi Step 1. Il salto dei grassi da 30 a 45 g è l\'intervento più importante del piano.',
+  step:'s1',
+  days:[
+    {m:8,d:3,t:'refeed',badge:'Renpho'},
+    {m:8,d:4,t:'refeed'},
+    {m:8,d:5,t:'step'},{m:8,d:6,t:'step'},{m:8,d:7,t:'step'},
+    {m:8,d:8,t:'refeed'},
+    {m:8,d:9,t:'step'},{m:8,d:10,t:'step'}
+  ],
+  after:'<div class="rules"><li class="ok">Carbo del refeed da fonti a basso volume: riso bianco, pane, miele, frutta. Non integrali.</li><li class="ok">Sodio invariato o leggermente alto. Ridurlo alza l\'aldosterone e ti fa trattenere di più.</li><li class="warn">Attenditi <strong>+0,8 / +1,5 kg entro il 5 agosto</strong>. È glicogeno e acqua. Non reagire, non tagliare.</li></div>'
+ },
+ {n:'02',name:'Parigi',dates:'11 → 13 agosto',kind:'f',
+  rule:'Tre giorni senza tracciamento. Quattro regole, nient\'altro.',
+  days:[{m:8,d:11,t:'free'},{m:8,d:12,t:'free'},{m:8,d:13,t:'free'}],
+  after:'<div class="rules"><li class="ok"><strong>Colazione proteica sempre.</strong> Croissant e cappuccino una volta sui tre giorni, non tre.</li><li class="ok"><strong>2 palmi di proteina</strong> a pranzo e a cena. Il resto libero.</li><li class="ok"><strong>1 pasto libero al giorno</strong>, non giornata libera.</li><li class="ok"><strong>Alcol: max 2–3 unità, max 2 sere su 3.</strong> Le unità sostituiscono i carboidrati del pasto, mai le proteine.</li><li class="no">Non pesarti a Parigi né al rientro. Prima pesata utile: 18 agosto.</li></div>'
+ },
+ {n:'03',name:'Rientro in struttura',dates:'14 → 19 agosto',kind:'s',
+  rule:'Step 2 pieno. È la finestra in cui consolidi prima dell\'Abruzzo.',
+  step:'s2',
+  days:[
+    {m:8,d:14,t:'step'},{m:8,d:15,t:'step'},{m:8,d:16,t:'step'},{m:8,d:17,t:'step'},
+    {m:8,d:18,t:'step',badge:'Pesata + vita'},
+    {m:8,d:19,t:'step',badge:'Renpho'}
+  ],
+  after:'<div class="rules"><li class="warn"><strong>L\'errore da non fare:</strong> tornare con +1,5 kg e tagliare per rimediare. Quel peso se ne va da solo in 4–5 giorni tenendo lo Step 2. Se tagli, riattivi il ciclo cortisolo/ritenzione da cui stai uscendo.</li><li class="ok">Pesata spostata a martedì 18: lunedì e domenica non sono giorni validi dopo un weekend libero.</li></div>'
+ },
+ {n:'04',name:'Abruzzo',dates:'20 → 26 agosto',kind:'f',
+  rule:'Sette giorni. Qui il rischio non è l\'eccesso singolo, è la deriva progressiva.',
+  days:[{m:8,d:20,t:'free'},{m:8,d:21,t:'free'},{m:8,d:22,t:'free'},{m:8,d:23,t:'free'},{m:8,d:24,t:'free'},{m:8,d:25,t:'free'},{m:8,d:26,t:'free'}],
+  after:'<div class="rules"><li class="ok"><strong>Colazione strutturata ogni giorno</strong> — yogurt greco o albumi + carbo. Zero eccezioni.</li><li class="ok"><strong>Un pasto controllato al giorno</strong> (pranzo o cena, scegli tu): proteina + verdure + porzione carbo moderata.</li><li class="ok"><strong>L\'altro pasto libero</strong>, senza calcoli.</li><li class="ok">Alcol: max 3 occasioni su 7 giorni, 2–3 unità.</li><li class="ok">10.000 passi minimo. Due full-body bastano per il segnale muscolare.</li><li class="no">Mai pesarsi in loco. Prima pesata: 28 agosto.</li></div>'
+ },
+ {n:'05',name:'Consolidamento',dates:'27 ago → 4 settembre',kind:'s',
+  rule:'Step 3. Nove giorni puliti: determinano da dove parti per la crociera.',
+  step:'s3',
+  days:[
+    {m:8,d:27,t:'step'},
+    {m:8,d:28,t:'step',badge:'Pesata + vita'},
+    {m:8,d:29,t:'step'},{m:8,d:30,t:'step'},{m:8,d:31,t:'step'},
+    {m:9,d:1,t:'step'},{m:9,d:2,t:'step'},{m:9,d:3,t:'step'},
+    {m:9,d:4,t:'step',badge:'Renpho'}
+  ],
+  after:'<div class="rules"><li class="ok"><strong>Target al 4 settembre: 58,3–58,8 kg, vita ≤ 71 cm.</strong> Se ci arrivi, la crociera parte dalla posizione giusta.</li></div>'
+ },
+ {n:'06',name:'Crociera',dates:'5 → 12 settembre',kind:'f',
+  rule:'Otto giorni con cibo disponibile 24 ore. È il tratto a rischio più alto del calendario: qui le regole sono più rigide, non più morbide.',
+  days:[{m:9,d:5,t:'free'},{m:9,d:6,t:'free'},{m:9,d:7,t:'free'},{m:9,d:8,t:'free'},{m:9,d:9,t:'free'},{m:9,d:10,t:'free'},{m:9,d:11,t:'free'},{m:9,d:12,t:'free'}],
+  after:'<div class="rules"><li class="ok"><strong>Al buffet: prima un piatto di proteine e verdure. Poi un piatto di carboidrati. Nessun secondo giro sui carbo.</strong> Questa regola da sola vale più di tutte le altre.</li><li class="ok">Dolce: massimo uno al giorno, scelto, non accumulato.</li><li class="no">Nessuno spuntino fra i pasti, nonostante la disponibilità continua.</li><li class="warn">Pacchetto bevande: è la vera trappola. Max 2–3 unità, max 4 sere su 8.</li><li class="ok">Palestra di bordo 3 volte, anche 30 minuti full body. Scale al posto dell\'ascensore, sempre.</li><li class="warn">Aspettativa realistica: <strong>+1,5 / 2 kg, di cui 0,5–1 kg di grasso reale.</strong> È accettabile e si recupera in due settimane.</li></div>'
+ },
+ {n:'07',name:'Restart',dates:'dal 13 settembre',kind:'s',
+  rule:'Step 4 e ritorno a 4 sessioni. Da qui comincia la fase di ipertrofia.',
+  step:'s4',
+  days:[
+    {m:9,d:13,t:'step'},{m:9,d:14,t:'step'},{m:9,d:15,t:'step'},{m:9,d:16,t:'step'},
+    {m:9,d:17,t:'step',badge:'Renpho'},
+    {m:9,d:18,t:'step'},{m:9,d:19,t:'step'},{m:9,d:20,t:'step'}
+  ],
+  after:'<div class="rules"><li class="ok">Ricalibrazione carichi: attenditi −5/10% nell\'espressione di forza neurale sui compound. È previsto, non è un problema.</li><li class="ok">Anche allo Step 4 sei ~200 kcal sotto mantenimento. In nessun punto del piano vai in surplus.</li></div>'
+ }
+];
+
+function macroCard(tag,m,cls){
+  return `<div class="mcard ${cls||''}">
+    <div class="mcard-tag">${tag}</div>
+    <div class="kcal">${m.k}</div>
+    <div class="split">
+      <span><b>CARB</b><i>${m.c}</i></span>
+      <span><b>PROT</b><i>${m.p}</i></span>
+      <span><b>GRAS</b><i>${m.g}</i></span>
+    </div>
+  </div>`;
+}
+
+let html='', tickHtml='';
+PHASES.forEach(ph=>{
+  let macros='';
+  if(ph.step){
+    const s=STEP[ph.step];
+    macros=`<div class="macros">${macroCard('Giorno ON · allenamento',s.on)}${macroCard('Giorno OFF · riposo',s.off)}</div>`;
+  }
+  if(ph.n==='01'){
+    macros=`<div class="macros one">${macroCard('Giorno refeed',REFEED,'refeed')}</div>`+macros;
+  }
+
+  let rows='';
+  ph.days.forEach(day=>{
+    const dt=d(day.m,day.d), id=`d-${day.m}-${day.d}`;
+    let cls, what;
+    if(day.t==='refeed'){
+      cls='r';
+      what=`<strong>Refeed</strong><small>2200 · C330 P150 G30</small>`;
+      tickHtml+=`<button class="tick t-refeed" data-go="${id}" title="${lbl(dt)} · refeed"></button>`;
+    } else if(day.t==='free'){
+      cls='f';
+      what=`<strong>${ph.name}</strong><small>regole, nessun conteggio</small>`;
+      tickHtml+=`<button class="tick t-free" data-go="${id}" title="${lbl(dt)} · ${ph.name}"></button>`;
+    } else {
+      const s=STEP[ph.step];
+      cls='s';
+      what=`<strong>Step ${ph.step.slice(1)}</strong><small>ON ${s.on.k} · OFF ${s.off.k}</small>`;
+      tickHtml+=`<button class="tick t-struct" data-go="${id}" title="${lbl(dt)} · step ${ph.step.slice(1)}"></button>`;
+    }
+    rows+=`<div class="day ${cls}" id="${id}">
+      <span class="date">${day.d} ${MO[day.m-1]}<em>${WD[dt.getDay()]}</em></span>
+      <span class="what">${what}</span>
+      ${day.badge?`<span class="badge">${day.badge}</span>`:''}
+    </div>`;
+  });
+
+  html+=`<section class="phase">
+    <div class="phase-head">
+      <span class="num">${ph.n}</span>
+      <span class="phase-name">${ph.name}</span>
+      <span class="phase-dates">${ph.dates}</span>
+    </div>
+    <p class="phase-rule">${ph.rule}</p>
+    ${macros}
+    <div class="days">${rows}</div>
+    ${ph.after||''}
+  </section>`;
+});
+
+document.getElementById('phases').innerHTML=html;
+document.getElementById('ticks').innerHTML=tickHtml;
+
+document.getElementById('ticks').addEventListener('click',e=>{
+  const b=e.target.closest('.tick'); if(!b) return;
+  const el=document.getElementById(b.dataset.go);
+  el.scrollIntoView({behavior:'smooth',block:'center'});
+  el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+});
+
+const now=new Date();
+const todayId=`d-${now.getMonth()+1}-${now.getDate()}`;
+const todayEl=document.getElementById(todayId);
+if(todayEl && now.getFullYear()===2026){
+  todayEl.classList.add('flash');
+  todayEl.insertAdjacentHTML('beforeend','<span class="badge" style="background:#111820">Oggi</span>');
+}
+</script>
+</body>
+</html>

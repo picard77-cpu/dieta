@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Spesa</title>
+<style>
+  :root{--bg:#f4f0e8;--surface:#ede8de;--surface2:#e5dfd3;--border:#d5cfc3;--text:#2a2a24;--text-muted:#5a5a50;--text-dim:#9a9a8a;--check:#5a7a5a;--accent:#4a7ab5;--r:12px;--rs:8px;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:15px;line-height:1.5;min-height:100vh;padding-bottom:50px;}
+  .hdr{position:sticky;top:0;z-index:100;background:var(--bg);border-bottom:1px solid var(--border);padding:14px 16px 12px;}
+  .hdr-top{display:flex;align-items:center;justify-content:space-between;}
+  .app-title{font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);}
+  .reset-btn{background:none;border:1px solid var(--border);color:var(--text-muted);font-size:12px;padding:5px 13px;border-radius:20px;cursor:pointer;font-family:inherit;}
+  .prog-wrap{display:flex;align-items:center;gap:10px;margin-top:10px;}
+  .prog-bar{flex:1;height:4px;background:var(--border);border-radius:4px;overflow:hidden;}
+  .prog-fill{height:100%;background:var(--check);border-radius:4px;transition:width .3s;}
+  .prog-lbl{font-size:11px;color:var(--text-dim);white-space:nowrap;}
+  .content{padding:0 14px;}
+  .reparto{margin-top:18px;}
+  .rep-head{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);background:rgba(74,122,181,.1);padding:7px 12px;border-radius:20px;margin-bottom:8px;}
+  .rep-num{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:var(--accent);color:#fff;font-size:10px;flex-shrink:0;}
+  .item{display:flex;align-items:center;gap:10px;padding:8px 12px;margin-bottom:4px;border-radius:var(--rs);border:1px solid var(--border);background:var(--surface);-webkit-tap-highlight-color:transparent;}
+  .item.ck{background:rgba(90,122,90,.12);border-color:#9ab89a;}
+  .item.ck .it-name{text-decoration:line-through;color:var(--text-dim);}
+  .it-box{width:20px;height:20px;border-radius:5px;border:1.5px solid var(--text-dim);flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+  .item.ck .it-box{background:var(--check);border-color:var(--check);}
+  .item.ck .it-box::after{content:'';width:5px;height:10px;border:2px solid #f4f0e8;border-top:none;border-left:none;transform:rotate(45deg) translateY(-1px);display:block;}
+  .it-name{font-size:14px;color:var(--text);flex:1;cursor:pointer;}
+  .it-qty{border:1px solid var(--border);border-radius:6px;background:var(--bg);font-family:inherit;font-size:13px;color:var(--text);width:88px;padding:4px 8px;outline:none;}
+  .it-qty::placeholder{color:var(--text-dim);font-size:12px;}
+  .rep-note{margin-top:6px;display:flex;align-items:flex-start;gap:10px;padding:8px 12px;border-radius:var(--rs);border:1px dashed var(--border);background:transparent;}
+  .rep-note.ck{border-color:#9ab89a;background:rgba(90,122,90,.07);}
+  .rn-box{width:20px;height:20px;border-radius:5px;border:1.5px solid var(--text-dim);flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+  .rep-note.ck .rn-box{background:var(--check);border-color:var(--check);}
+  .rep-note.ck .rn-box::after{content:'';width:5px;height:10px;border:2px solid #f4f0e8;border-top:none;border-left:none;transform:rotate(45deg) translateY(-1px);display:block;}
+  .rn-input{flex:1;border:none;background:transparent;font-family:inherit;font-size:13px;color:var(--text);outline:none;resize:none;}
+  .rn-input::placeholder{color:var(--text-dim);font-style:italic;}
+  .altro{margin:22px 14px 8px;padding:15px;border-radius:var(--r);border:1px solid var(--border);background:var(--surface);}
+  .altro-title{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;}
+  .altro-input{width:100%;min-height:90px;border:1px solid var(--border);border-radius:var(--rs);background:var(--bg);font-family:inherit;font-size:14px;color:var(--text);padding:10px;outline:none;resize:vertical;}
+  .altro-input::placeholder{color:var(--text-dim);}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div class="hdr-top"><span class="app-title">Lista Spesa</span><button class="reset-btn" onclick="resetAll()">Svuota lista</button></div>
+  <div class="prog-wrap"><div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div><span class="prog-lbl" id="progLbl">0</span></div>
+</div>
+<div class="content" id="content"></div>
+<div class="altro">
+  <div class="altro-title">Altro / Note (anche non alimentari)</div>
+  <textarea class="altro-input" id="altroNote" placeholder="Scrivi qui qualsiasi cosa: detersivi, ricordi, varie..." oninput="saveAltro(this.value)"></textarea>
+</div>
+<script>
+var REPARTI=[["Scaffali colazione", ["Caffè / Tè / Latte (anche vegetale)", "Latte parz. scremato", "Fette biscottate", "Fiocchi d'avena", "Farro soffiato", "Fiocchi di mais", "Marmellate", "Miele", "Biscotti"]], ["Frigo freschi", ["Insalata in sacchetto", "Verdure precotte/confezionate", "Minestroni / zuppe", "Tofu / tempeh / seitan / soia"]], ["Banco frutta e verdura fresca (a peso)", ["Zucchine", "Pomodori", "Cavolo cappuccio", "Cavolo rosso", "Bieta", "Broccoli", "Cavolfiori", "Finocchi", "Insalata verde", "Valeriana", "Peperoni", "Carote", "Zucca", "Coste", "Insalata belga", "Radicchio rosso", "Barbabietola", "Sedano", "Cetrioli", "Patate", "Mirtilli", "Lamponi", "Pesche", "Albicocche", "Banane", "Ciliegie", "Mele", "Pere", "Prugne", "Susine", "Kiwi", "Fragole", "Arance", "Mandarini", "Clementine"]], ["Frigo pasta fresca / gnocchi / ravioli", ["Gnocchi di patate", "Spatzle"]], ["Frigo latticini e formaggi industriali", ["Fiocchi di Latte Milk Pro High Protein", "PRO High Protein crema dessert", "Yogurt greco 0%", "Yogurt Danone Hipro", "Yogurt Milk PRO High Protein", "Mozzarella proteica Granarolo", "Mozzarella High Protein Lidl", "Albume", "Burro"]], ["Frigo latticini artigianali", ["Grana (stick o fetta)"]], ["Scaffale scatolame ed essiccati", ["Fagioli borlotti (scatola)", "Fagioli cannellini (scatola)", "Fagioli rossi (scatola)", "Piselli fini (scatola)", "Ceci (scatola)", "Lenticchie (scatola)", "Mais in scatola", "Frutta secca oleosa"]], ["Frigo salumi confezionati industriali", ["Bresaola", "Prosciutto cotto Snello Rovagnati", "Prosciutto crudo Snello Rovagnati", "Affettato pollo o tacchino"]], ["Banco gastronomia", ["Bresaola affettata", "Verdure cotte in vaschetta", "Formaggi freschi / salumi da affettare"]], ["Banco e scaffale pane fresco e dolci", ["Pane grano duro", "Pane integrale"]], ["Scaffale pane confezionato e piadine", ["Piadina"]], ["Scaffale uova", ["Uova"]], ["Frigo carne fresca", ["Petto di pollo", "Tacchino", "Manzo magro", "Vitello", "Lonza", "Hamburger"]], ["Frigo pesce fresco (non surgelato)", ["Gamberi", "Polpo", "Gamberetti", "Seppie", "Totani"]], ["Scaffale pesce in scatola/vetro", ["Tonno naturale", "Sgombro"]], ["Scaffale prodotti da forno industriali", ["Wasa Integrale", "Crackers"]], ["Scaffale olio, sughi, condimenti", ["Olio", "Passata / sughi"]], ["Scaffale pasta", ["Pasta", "Pasta integrale"]], ["Scaffale riso e altri cereali", ["Riso", "Riso basmati", "Riso integrale", "Riso nero", "Cous cous", "Orzo", "Farro"]], ["Scaffale bevande", []], ["Scaffale zucchero e sale", []], ["Freezer surgelati", ["Branzino", "Merluzzo / Nasello", "Platessa / Sogliola", "Sogliola", "Salmone", "Totani (surgelati)", "Scampi", "Minestrone", "Gelati"]], ["Scaffale cioccolato", []]];
+var SKEY='spesa_v1';
+var ST={ck:{},qty:{},rn:{},rnck:{},altro:''};
+
+function save(){ try{ localStorage.setItem(SKEY, JSON.stringify(ST)); }catch(e){} }
+function load(){ try{ var r=localStorage.getItem(SKEY); if(r){ var o=JSON.parse(r); ST.ck=o.ck||{}; ST.qty=o.qty||{}; ST.rn=o.rn||{}; ST.rnck=o.rnck||{}; ST.altro=o.altro||''; } }catch(e){} }
+
+function toggleItem(ri,ii){ var k=ri+'_'+ii; ST.ck[k]=!ST.ck[k]; save(); render(); }
+function setQty(ri,ii,v){ ST.qty[ri+'_'+ii]=v; save(); }
+function toggleRepNote(ri){ ST.rnck[ri]=!ST.rnck[ri]; save(); render(); }
+function setRepNote(ri,v){ ST.rn[ri]=v; save(); }
+function saveAltro(v){ ST.altro=v; save(); }
+
+function resetAll(){
+  if(confirm('Svuotare tutta la lista? (spunte, quantità e note)')){
+    ST={ck:{},qty:{},rn:{},rnck:{},altro:''}; save();
+    document.getElementById('altroNote').value='';
+    render();
+  }
+}
+
+function render(){
+  var total=0, done=0;
+  var c='';
+  REPARTI.forEach(function(rep,ri){
+    var nome=rep[0], items=rep[1];
+    c+='<div class="reparto"><div class="rep-head"><span class="rep-num">'+(ri+1)+'</span>'+nome+'</div>';
+    items.forEach(function(it,ii){
+      var k=ri+'_'+ii; var ck=ST.ck[k]; total++; if(ck)done++;
+      var q=ST.qty[k]||'';
+      c+='<div class="item'+(ck?' ck':'')+'">';
+      c+='<div class="it-box" onclick="toggleItem('+ri+','+ii+')"></div>';
+      c+='<div class="it-name" onclick="toggleItem('+ri+','+ii+')">'+it+'</div>';
+      c+='<input class="it-qty" type="text" value="'+q.replace(/"/g,'&quot;')+'" placeholder="qtà / note" oninput="setQty('+ri+','+ii+',this.value)">';
+      c+='</div>';
+    });
+    // campo nota libera del reparto
+    var rnck=ST.rnck[ri]; var rn=(ST.rn[ri]||'').replace(/"/g,'&quot;');
+    c+='<div class="rep-note'+(rnck?' ck':'')+'"><div class="rn-box" onclick="toggleRepNote('+ri+')"></div>';
+    c+='<input class="rn-input" type="text" value="'+rn+'" placeholder="+ aggiungi altro in questo reparto..." oninput="setRepNote('+ri+',this.value)"></div>';
+    c+='</div>';
+  });
+  document.getElementById('content').innerHTML=c;
+  var pct=total?Math.round(done/total*100):0;
+  document.getElementById('progFill').style.width=pct+'%';
+  document.getElementById('progLbl').textContent=done+' / '+total;
+}
+
+load();
+render();
+document.getElementById('altroNote').value=ST.altro||'';
+</script>
+</body>
+</html>
