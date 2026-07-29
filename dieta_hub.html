@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Dieta</title>
+<style>
+  :root{--bg:#f4f0e8;--surface:#ede8de;--surface2:#e5dfd3;--border:#d5cfc3;--text:#2a2a24;--text-muted:#5a5a50;--text-dim:#9a9a8a;--check:#5a7a5a;--r:12px;--rs:8px;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:15px;line-height:1.5;min-height:100vh;padding-bottom:40px;}
+  .hdr{position:sticky;top:0;z-index:100;background:var(--bg);border-bottom:1px solid var(--border);padding:14px 16px 10px;}
+  .hdr-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+  .app-title{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);}
+  .reset-btn{background:none;border:1px solid var(--border);color:var(--text-muted);font-size:12px;padding:4px 12px;border-radius:20px;cursor:pointer;font-family:inherit;}
+  .day-sel{display:flex;gap:6px;}
+  .day-btn{flex:1;padding:7px 4px;border-radius:var(--rs);border:1px solid var(--border);background:var(--surface);color:var(--text-muted);font-size:11px;font-weight:600;font-family:inherit;cursor:pointer;text-align:center;}
+  .day-btn.on{background:rgba(90,122,90,.15);border-color:#5a7a5a;color:#3d5c3d;}
+  .day-btn.off{background:rgba(74,122,181,.15);border-color:#4a7ab5;color:#2d5a8a;}
+  .day-btn.sc{background:rgba(196,122,58,.15);border-color:#c47a3a;color:#8a4a1a;}
+  .totali{padding:10px 16px;border-bottom:1px solid var(--border);}
+  .totali-row{display:flex;gap:6px;}
+  .tot-card{flex:1;background:var(--surface);border-radius:var(--rs);padding:8px 4px;text-align:center;}
+  .tot-val{font-size:17px;font-weight:700;color:var(--text);line-height:1.1;}
+  .tot-val.over{color:#b5502d;}
+  .tot-lbl{font-size:9px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text-dim);margin-top:2px;}
+  .tot-target{font-size:9px;color:var(--text-dim);margin-top:1px;}
+  .prog-wrap{display:flex;align-items:center;gap:10px;padding:8px 16px 0;}
+  .prog-bar{flex:1;height:3px;background:var(--border);border-radius:3px;overflow:hidden;}
+  .prog-fill{height:100%;background:#5a7a5a;border-radius:3px;transition:width .3s;}
+  .prog-lbl{font-size:11px;color:var(--text-dim);white-space:nowrap;}
+  .content{padding:0 16px;}
+  .meal-sec{margin-top:18px;}
+  .meal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:8px;}
+  .meal-lbl{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;padding:5px 11px;border-radius:20px;display:inline-block;white-space:nowrap;}
+  .meal-lbl.colazione,.meal-lbl.pranzo,.meal-lbl.cena{background:rgba(90,122,90,.12);color:#3d5c3d;}
+  .meal-lbl.spuntino,.meal-lbl.merenda{background:rgba(74,122,181,.12);color:#2d5a8a;}
+  .meal-lbl.serale{background:rgba(196,122,58,.12);color:#8a4a1a;}
+  .meal-sub{font-size:10px;color:var(--text-dim);font-weight:600;text-align:right;}
+  .meal-sub b{color:var(--text-muted);}
+  .sec-note{font-size:12px;color:var(--text-dim);margin-bottom:8px;font-style:italic;}
+  .divider{height:1px;background:var(--border);margin:18px 0 2px;}
+  .alt-tabs{display:flex;gap:6px;margin-bottom:10px;}
+  .alt-tab{font-size:11px;font-weight:600;padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:var(--surface);color:var(--text-dim);cursor:pointer;font-family:inherit;}
+  .alt-tab.sel{border-color:#7a9a7a;background:rgba(90,122,90,.12);color:#3d5c3d;}
+  .cat-block{margin-bottom:12px;}
+  .cat-lbl{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);margin-bottom:5px;padding-left:2px;}
+  .opt{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;margin-bottom:4px;border-radius:var(--rs);border:1px solid var(--border);background:var(--surface);cursor:pointer;-webkit-tap-highlight-color:transparent;}
+  .opt.ck{background:rgba(90,122,90,.14);border-color:#9ab89a;}
+  .opt-circle{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--text-dim);flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;}
+  .opt.ck .opt-circle{background:var(--check);border-color:var(--check);}
+  .opt.ck .opt-circle::after{content:'';width:5px;height:9px;border:2px solid #f4f0e8;border-top:none;border-left:none;transform:rotate(45deg) translateY(-1px);display:block;}
+  .opt-text{font-size:14px;color:var(--text-muted);flex:1;line-height:1.4;}
+  .opt.ck .opt-text{color:var(--text);}
+  .opt-macros{font-size:11px;color:var(--text-dim);margin-top:3px;}
+  .stepper{display:flex;align-items:center;gap:8px;margin-top:8px;}
+  .step-btn{width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--bg);color:var(--text-muted);font-size:16px;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .step-val{font-size:13px;color:var(--text);font-weight:600;min-width:60px;text-align:center;}
+  .sub-list{margin-top:6px;margin-left:4px;display:flex;flex-direction:column;gap:3px;}
+  .sub{display:flex;align-items:center;gap:8px;padding:5px 9px;border-radius:6px;border:1px solid #c8c2b6;background:rgba(255,255,255,.4);cursor:pointer;-webkit-tap-highlight-color:transparent;}
+  .sub.ck{background:rgba(90,122,90,.1);border-color:#9ab89a;}
+  .sub-box{width:15px;height:15px;border-radius:3px;border:1.5px solid var(--text-dim);flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+  .sub.ck .sub-box{background:var(--check);border-color:var(--check);}
+  .sub.ck .sub-box::after{content:'';width:4px;height:7px;border:1.5px solid #f4f0e8;border-top:none;border-left:none;transform:rotate(45deg) translateY(-1px);display:block;}
+  .sub-txt{font-size:13px;color:var(--text-muted);flex:1;}
+  .sub.ck .sub-txt{color:var(--text);}
+  .sub-macros{font-size:10px;color:var(--text-dim);}
+  .fix{display:flex;align-items:flex-start;gap:10px;padding:8px 12px;margin-bottom:4px;border-radius:var(--rs);border:1px dashed var(--border);background:transparent;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+  .fix.ck{border-color:#9ab89a;background:rgba(90,122,90,.08);}
+  .fix-box{width:18px;height:18px;border-radius:4px;border:1.5px solid var(--text-dim);flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;}
+  .fix.ck .fix-box{background:#9ab89a;border-color:#7a9a7a;}
+  .fix.ck .fix-box::after{content:'';width:5px;height:9px;border:2px solid #f4f0e8;border-top:none;border-left:none;transform:rotate(45deg) translateY(-1px);display:block;}
+  .fix-txt{font-size:13px;color:var(--text-dim);flex:1;line-height:1.4;}
+  .fix.ck .fix-txt{color:var(--text-muted);}
+  .fix-macros{font-size:10px;color:var(--text-dim);margin-top:2px;}
+  /* multi-gram items (verdure/frutta/legumi) */
+  .mg{display:flex;align-items:center;gap:10px;padding:8px 12px;margin-bottom:4px;border-radius:var(--rs);border:1px solid var(--border);background:var(--surface);-webkit-tap-highlight-color:transparent;}
+  .mg.ck{background:rgba(90,122,90,.12);border-color:#9ab89a;}
+  .mg-box{width:18px;height:18px;border-radius:4px;border:1.5px solid var(--text-dim);flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+  .mg.ck .mg-box{background:var(--check);border-color:var(--check);}
+  .mg.ck .mg-box::after{content:'';width:5px;height:9px;border:2px solid #f4f0e8;border-top:none;border-left:none;transform:rotate(45deg) translateY(-1px);display:block;}
+  .mg-name{font-size:14px;color:var(--text-muted);flex:1;cursor:pointer;}
+  .mg.ck .mg-name{color:var(--text);}
+  .mg-gr{display:flex;align-items:center;gap:3px;border:1px solid var(--border);border-radius:6px;background:var(--bg);padding:3px 6px;}
+  .mg-input{border:none;background:transparent;font-family:inherit;font-size:14px;font-weight:600;color:var(--text);width:46px;text-align:right;outline:none;}
+  .mg-unit{font-size:11px;color:var(--text-dim);}
+  .mg-macros{font-size:10px;color:var(--text-dim);min-width:54px;text-align:right;}
+  .pw-badge{font-size:10px;font-weight:700;letter-spacing:.08em;color:#8a4a1a;background:rgba(196,122,58,.12);padding:2px 7px;border-radius:10px;display:inline-block;margin-bottom:4px;}
+  .acqua{margin:22px 16px 8px;padding:15px;border-radius:var(--r);border:1px solid var(--border);background:var(--surface);}
+  .acq-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+  .acq-title{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#2d5a8a;}
+  .acq-tot{font-size:13px;color:var(--text-muted);font-weight:600;}
+  .acq-tot b{color:#2d5a8a;font-size:17px;}
+  .acq-bar-wrap{height:6px;background:var(--border);border-radius:6px;overflow:hidden;margin-bottom:12px;}
+  .acq-bar{height:100%;background:#4a7ab5;border-radius:6px;transition:width .3s;}
+  .acq-ctrl{display:flex;align-items:center;gap:10px;}
+  .acq-inp-wrap{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;border:1px solid var(--border);border-radius:var(--rs);background:var(--bg);padding:7px 10px;}
+  .acq-inp{border:none;background:transparent;font-family:inherit;font-size:18px;font-weight:700;color:var(--text);width:70px;text-align:center;outline:none;}
+  .acq-unit{font-size:12px;color:var(--text-dim);}
+  .acq-btn{width:42px;height:42px;border-radius:50%;border:none;font-size:24px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:inherit;}
+  .acq-btn.minus{background:var(--surface2);color:var(--text-muted);}
+  .acq-btn.plus{background:#4a7ab5;color:white;}
+  .acq-note{font-size:11px;color:var(--text-dim);text-align:center;margin-top:9px;}
+  .acq-ok{font-size:12px;font-weight:600;color:#3d5c3d;text-align:center;margin-top:6px;display:none;}
+
+  .egopt{border:1px solid var(--border);background:var(--surface);border-radius:var(--rs);margin-bottom:4px;overflow:hidden;}
+  .egopt.ck{border-color:#9ab89a;background:rgba(90,122,90,.12);}
+  .eghead{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+  .egcircle{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--text-dim);flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+  .egopt.ck .egcircle{background:var(--check);border-color:var(--check);}
+  .egopt.ck .egcircle::after{content:'';width:5px;height:9px;border:2px solid #f4f0e8;border-top:none;border-left:none;transform:rotate(45deg) translateY(-1px);display:block;}
+  .egname{font-size:14px;color:var(--text-muted);flex:1;}
+  .egopt.ck .egname{color:var(--text);}
+  .eggr{display:flex;align-items:center;gap:3px;border:1px solid var(--border);border-radius:6px;background:var(--bg);padding:3px 6px;}
+  .eggr input{border:none;background:transparent;font-family:inherit;font-size:14px;font-weight:600;color:var(--text);width:42px;text-align:right;outline:none;}
+  .eggr .u{font-size:11px;color:var(--text-dim);}
+  .egstep{width:24px;height:24px;border-radius:50%;border:1px solid var(--border);background:var(--bg);color:var(--text-muted);font-size:14px;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .egmac{font-size:11px;color:var(--text-dim);padding:0 12px 8px 40px;}
+  .egvars{padding:0 12px 10px 40px;display:flex;flex-direction:column;gap:3px;}
+  .egvar{display:flex;align-items:center;gap:8px;padding:5px 9px;border-radius:6px;border:1px solid #c8c2b6;background:rgba(255,255,255,.4);cursor:pointer;}
+  .egvar.sel{background:rgba(90,122,90,.15);border-color:#7a9a7a;}
+  .egvdot{width:13px;height:13px;border-radius:50%;border:1.5px solid var(--text-dim);flex-shrink:0;}
+  .egvar.sel .egvdot{background:var(--check);border-color:var(--check);}
+  .egvtxt{font-size:13px;color:var(--text-muted);flex:1;}
+  .egvar.sel .egvtxt{color:var(--text);}
+  .egvmac{font-size:10px;color:var(--text-dim);}
+
+  .extra{margin:22px 16px 8px;padding:15px;border-radius:var(--r);border:1px solid var(--border);background:var(--surface);}
+  .extra-title{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#8a4a1a;margin-bottom:4px;}
+  .extra-sub{font-size:11px;color:var(--text-dim);margin-bottom:12px;}
+  .extra-row{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+  .extra-name{flex:1;min-width:0;border:1px solid var(--border);border-radius:6px;background:var(--bg);font-family:inherit;font-size:13px;color:var(--text);padding:6px 8px;outline:none;}
+  .extra-name::placeholder{color:var(--text-dim);}
+  .extra-m{width:48px;border:1px solid var(--border);border-radius:6px;background:var(--bg);font-family:inherit;font-size:13px;font-weight:600;color:var(--text);padding:6px 3px;outline:none;text-align:center;}
+  .extra-m::placeholder{color:var(--text-dim);font-weight:400;}
+  .extra-hdr{display:flex;gap:6px;margin-bottom:4px;padding-left:2px;}
+  .extra-hdr .lbln{flex:1;}
+  .extra-hdr .lblm{width:48px;text-align:center;font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--text-dim);}
+
+  .meal-head{cursor:pointer;background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:11px 13px;margin-bottom:0;-webkit-tap-highlight-color:transparent;}
+  .meal-head.open{border-bottom-left-radius:0;border-bottom-right-radius:0;margin-bottom:0;}
+  .meal-chev{font-size:13px;color:var(--text-dim);transition:transform .2s;margin-left:6px;flex-shrink:0;}
+  .meal-head.open .meal-chev{transform:rotate(90deg);}
+  .meal-left{display:flex;align-items:center;gap:8px;flex:1;min-width:0;}
+  .meal-body{border:1px solid var(--border);border-top:none;border-bottom-left-radius:var(--rs);border-bottom-right-radius:var(--rs);padding:12px 13px 4px;margin-bottom:0;}
+  .meal-done{font-size:10px;color:#3d5c3d;font-weight:700;background:rgba(90,122,90,.14);padding:2px 7px;border-radius:10px;margin-left:4px;}
+
+  .step-sel{display:flex;gap:5px;margin-bottom:6px;}
+  .step-btn2{flex:1;padding:6px 3px;border-radius:var(--rs);border:1px solid var(--border);background:var(--surface);color:var(--text-muted);font-size:11px;font-weight:600;font-family:inherit;cursor:pointer;text-align:center;}
+  .step-btn2.sel{background:rgba(196,122,58,.15);border-color:#c47a3a;color:#8a4a1a;}
+
+  .vdrop-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 12px;border:1px solid var(--border);background:var(--surface);border-radius:var(--rs);cursor:pointer;-webkit-tap-highlight-color:transparent;margin-bottom:4px;}
+  .vdrop-head.open{border-bottom-left-radius:0;border-bottom-right-radius:0;}
+  .vdrop-title{font-size:13px;color:var(--text-muted);font-weight:600;}
+  .vdrop-count{font-size:11px;color:#3d5c3d;font-weight:700;background:rgba(90,122,90,.14);padding:2px 7px;border-radius:10px;}
+  .vdrop-chev{font-size:12px;color:var(--text-dim);transition:transform .2s;}
+  .vdrop-head.open .vdrop-chev{transform:rotate(90deg);}
+  .vdrop-body{border:1px solid var(--border);border-top:none;border-bottom-left-radius:var(--rs);border-bottom-right-radius:var(--rs);padding:8px;margin-bottom:4px;}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div class="hdr-top"><span class="app-title">Dieta</span><button class="reset-btn" onclick="resetDay()">Reset giorno</button></div>
+  <div class="step-sel">
+    <button class="step-btn2" id="stp-1" onclick="setStep('1')">Step 1</button>
+    <button class="step-btn2" id="stp-2" onclick="setStep('2')">Step 2</button>
+    <button class="step-btn2" id="stp-3" onclick="setStep('3')">Step 3</button>
+    <button class="step-btn2" id="stp-4" onclick="setStep('4')">Step 4</button>
+    <button class="step-btn2" id="stp-refeed" onclick="setStep('refeed')">Refeed</button>
+  </div>
+  <div class="day-sel">
+    <button class="day-btn" id="btn-on" onclick="setDay('on')">ON<br><span style="font-size:10px;font-weight:400">allenamento</span></button>
+    <button class="day-btn" id="btn-off" onclick="setDay('off')">OFF<br><span style="font-size:10px;font-weight:400">riposo</span></button>
+  </div>
+</div>
+<div class="totali" id="totali"></div>
+<div class="prog-wrap"><div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div><span class="prog-lbl" id="progLbl">0 / 0</span></div>
+<div class="content" id="content"></div>
+<div class="extra">
+  <div class="extra-title">Extra / Cena cheat</div>
+  <div class="extra-sub">Alimenti fuori dieta: inserisci i valori a mano, entrano nel totale in alto.</div>
+  <div class="extra-hdr"><span class="lbln"></span><span class="lblm">kcal</span><span class="lblm">C</span><span class="lblm">P</span><span class="lblm">G</span></div>
+  <div id="extraRows"></div>
+</div>
+<div class="acqua">
+  <div class="acq-hdr"><span class="acq-title">Acqua</span><span class="acq-tot"><b id="acqMl">0</b> / 3250 ml <span id="acqPct" style="color:#4a7ab5;font-weight:700">(0%)</span></span></div>
+  <div class="acq-bar-wrap"><div class="acq-bar" id="acqBar" style="width:0%"></div></div>
+  <div class="acq-ctrl">
+    <button class="acq-btn minus" onclick="acqChange(-1)">-</button>
+    <div class="acq-inp-wrap"><input class="acq-inp" id="acqQty" type="number" value="300" min="50" max="1000" step="50"><span class="acq-unit">ml</span></div>
+    <button class="acq-btn plus" onclick="acqChange(1)">+</button>
+  </div>
+  <div class="acq-note" id="acqNote">Obiettivo: 3250 ml</div>
+  <div class="acq-ok" id="acqOk"></div>
+</div>
+<script>
+var VERDURE=[{l:'Asparagi',per:[20,3.9,2.2,0.1]},{l:'Barbabietola',per:[43,10,1.6,0.2]},{l:'Bieta',per:[19,3.7,1.8,0.2]},{l:'Broccoli',per:[34,6.6,2.8,0.4]},{l:'Carote',per:[41,10,0.9,0.2]},{l:'Cavolfiori',per:[25,5,1.9,0.3]},{l:'Cavolo cappuccio',per:[25,5,1.3,0.1]},{l:'Cavolo rosso',per:[31,7,1.4,0.2]},{l:'Cetrioli',per:[16,3.6,0.7,0.1]},{l:'Coste',per:[19,3.7,1.8,0.2]},{l:'Fagiolini',per:[31,7,1.8,0.1]},{l:'Finocchi',per:[31,7,1.2,0.2]},{l:'Insalata belga',per:[17,4,0.9,0.1]},{l:'Insalata verde',per:[15,2.9,1.4,0.2]},{l:'Melanzane',per:[25,6,1,0.2]},{l:'Peperoni',per:[26,6,1,0.3]},{l:'Peperoni friggitelli',per:[20,4.6,1.8,0.2]},{l:'Pomodori',per:[18,3.5,0.9,0.2]},{l:'Radicchio rosso',per:[23,4.5,1.4,0.3]},{l:'Sedano',per:[16,3,0.7,0.2]},{l:'Spinaci',per:[23,3.6,2.9,0.4]},{l:'Valeriana',per:[21,3.6,2,0.4]},{l:'Zucca',per:[26,7,1,0.1]},{l:'Zucchine',per:[17,3.1,1.2,0.3]}];
+var FRUTTA=[{l:'Albicocche',per:[48,11,1.4,0.4]},{l:'Arance',per:[47,12,0.9,0.1]},{l:'Banane',per:[89,23,1.1,0.3]},{l:'Ciliegie',per:[63,16,1.1,0.2]},{l:'Clementine',per:[47,12,0.9,0.2]},{l:'Fragole',per:[32,7.7,0.7,0.3]},{l:'Kiwi',per:[61,15,1.1,0.5]},{l:'Lamponi',per:[52,12,1.2,0.7]},{l:'Mandarini',per:[53,13,0.8,0.3]},{l:'Mele',per:[52,14,0.3,0.2]},{l:'Mirtilli',per:[57,14,0.7,0.3]},{l:'Pere',per:[57,15,0.4,0.1]},{l:'Pesche',per:[39,10,0.9,0.3]},{l:'Prugne',per:[46,11,0.7,0.3]},{l:'Susine',per:[46,11,0.7,0.3]}];
+var LEGUMI=[{l:'Fagioli borlotti',per:[91,13,6,0.5]},{l:'Fagioli cannellini',per:[91,13,6,0.5]},{l:'Fagioli rossi',per:[94,14,7,0.5]},{l:'Piselli fini',per:[80,10,5,0.5]},{l:'Ceci',per:[120,16,7,2.5]},{l:'Lenticchie',per:[95,16,7,0.5]}];
+
+
+// gram-multi category builders
+function vrdCat(){ return {nome:'Verdure', tipo:'grams', def:150, items:VERDURE, collapsible:1}; }
+function legumiItems(){ return LEGUMI; }
+
+var D = {
+  on: { macros:'1750|210|160|30', target:[1750,210,160,30], pasti: [{ id:'col', nome:'Colazione', type:'colazione', alt:[{ nome:'Yogurt', cats:[{ nome:'Proteina', tipo:'radio', opts:[{eg:1,l:'Yogurt Greco 0%',def:200,single:1,step:10,per:[57.3,4,10.1,0]},{eg:1,l:'PRO High Protein crema dessert',def:200,single:1,step:10,per:[83,7.5,10,1.4]}] },{ nome:'Carboidrato', tipo:'radio', opts:[{cnt:1,l:'Fette biscottate',defn:6,unit:'fette',per:[35,6.1,1.1,0.6]},{eg:1,l:'Farro soffiato',def:60,single:1,per:[359,69,13,1.9]},{eg:1,l:'Fiocchi d\'avena',def:60,single:1,per:[370,56,14,7]},{eg:1,l:'Fiocchi di mais',def:60,single:1,per:[378,84,7,0.9]}] },{ nome:'', tipo:'radio', opts:[{eg:1,l:'Miele',def:20,single:1,step:5,per:[305,82,0.5,0]}] }]},{ nome:'Latte Proteico', cats:[{ nome:'Proteina', tipo:'fixed', opts:[{l:'200gr latte parz. scremato + 30gr whey isolate',m:[209,11.9,30.1,4.5]}] },{ nome:'Carboidrato', tipo:'radio', opts:[{cnt:1,l:'Fette biscottate',defn:6,unit:'fette',per:[35,6.1,1.1,0.6]},{eg:1,l:'Fiocchi di mais',def:60,single:1,per:[378,84,7,0.9]}] },{ nome:'', tipo:'radio', opts:[{eg:1,l:'Miele',def:20,single:1,step:5,per:[305,82,0.5,0]}] }]}]},{ id:'spm', nome:'Spuntino Mattina', type:'spuntino', cats:[{ nome:'', tipo:'radio', opts:[{l:'1 Yogurt Danone Hipro (160gr)',m:[88,7,15,0]},{eg:1,l:'Yogurt greco 0%',def:150,single:1,step:10,per:[57.3,4,10.1,0]},{eg:1,l:'Grana',def:20,single:1,step:5,per:[384,0,33,28]},{l:'1 Yogurt Milk PRO High Protein 16g (180gr)',m:[99,7.6,16.4,0.4]},{eg:1,l:'Affettato pollo o tacchino',def:80,single:1,per:[100,2,20,1.5]}] }] },{ id:'pra', nome:'Pranzo', type:'pranzo', cats:[vrdCat(),{ nome:'Proteina', tipo:'radio', opts:[{eg:1,l:'Carne',def:160,variants:[{l:'Petto di pollo',per:[100,0,23,1]},{l:'Tacchino',per:[107,0,24,1]},{l:'Manzo magro',per:[130,0,21,5]},{l:'Vitello',per:[110,0,21,3]},{l:'Lonza',per:[140,0,22,6]},{l:'Hamburger di bovino',per:[172,0,17,10]}]},{eg:1,l:'Pesce',def:210,variants:[{l:'Branzino',per:[82,0,17,2]},{l:'Merluzzo/Nasello',per:[71,0,17,0.5]},{l:'Platessa/Sogliola',per:[73,0,16,1.5]},{l:'Tonno naturale',per:[106,0,25.1,0]},{l:'Seppie',per:[72,0,14,1.5]},{l:'Totani',per:[68,0,13,1]},{l:'Gamberi',per:[71,0,15,1]}]},{eg:1,l:'Salume',def:100,variants:[{l:'Bresaola',per:[152,0.4,33.1,2]},{l:'Prosciutto cotto Snello Rovagnati',per:[105,1.9,20,1.9]},{l:'Prosciutto crudo Snello Rovagnati',per:[172,0,30,5.8]}]},{cnt:1,l:'Uova',defn:1,unit:'uova',per:[72,0,6.3,5]},{eg:1,l:'Albume',def:200,single:1,step:10,per:[44,0,11,0]},{eg:1,l:'Mozzarella proteica Granarolo',def:100,single:1,step:10,per:[131,1.4,20,5]},{eg:1,l:'Mozzarella High Protein Lidl',def:125,single:1,step:10,per:[131,1.4,20,5]},{eg:1,l:'Fiocchi di Latte Milk Pro',def:210,single:1,step:10,per:[67.1,2.8,11.9,0.9]}] },{ nome:'Carboidrato', tipo:'radio', opts:[{eg:1,l:'Pane grano duro',def:140,single:1,per:[290,57,9,1]},{eg:1,l:'Pane farina 00',def:140,single:1,per:[271,56,9,0.8]},{eg:1,l:'Cereale',def:100,variants:[{l:'Pasta integrale',per:[350,64,13,2.5]},{l:'Riso',per:[358,79,7,0.6]},{l:'Cous cous',per:[376,77,13,1.5]},{l:'Riso nero',per:[370,72,9,3]},{l:'Orzo',per:[354,73,10,1.5]},{l:'Farro',per:[340,70,15,2.5]}]},{eg:1,l:'Patate',def:400,single:1,per:[77,17,2,0.1]},{eg:1,l:'Piadina',def:120,single:1,per:[290,47,8,8]}] },{ nome:'Legumi (alternativa al cereale)', tipo:'grams', def:200, items:legumiItems() },{ nome:'Grassi', tipo:'radio', opts:[{eg:1,l:'Olio',def:5,single:1,step:5,per:[900,0,0,100]}] }]},{ id:'mer', nome:'Merenda Pomeriggio', type:'merenda', cats:[{ nome:'Proteina / Snack', tipo:'radio', opts:[{l:'1 Yogurt Danone Hipro (160gr)',m:[88,7,15,0]},{eg:1,l:'Yogurt greco 0%',def:150,single:1,step:10,per:[57.3,4,10.1,0]},{cnt:1,l:'Uova sode',defn:1,unit:'uova',per:[72,0,6.3,5]},{eg:1,l:'Grana',def:20,single:1,step:5,per:[384,0,33,28]}] },{ nome:'Carboidrato', tipo:'radio', opts:[{cnt:1,l:'Wasa Integrale',defn:2,unit:'fette',per:[36.7,6.6,1,0.1]}] },{ nome:'Frutta (alternativa Wasa)', tipo:'grams', def:130, items:FRUTTA, collapsible:1 },{ nome:'Post Workout', tipo:'radio', opts:[{eg:1,l:'Whey isolate + acqua',def:30,single:1,step:5,per:[378,5.6,79,4.2]}] }] },{ id:'cen', nome:'Cena', type:'cena', cats:[vrdCat(),{ nome:'Proteina', tipo:'radio', opts:[{eg:1,l:'Carne',def:160,variants:[{l:'Petto di pollo',per:[100,0,23,1]},{l:'Tacchino',per:[107,0,24,1]},{l:'Manzo magro',per:[130,0,21,5]},{l:'Vitello',per:[110,0,21,3]},{l:'Lonza',per:[140,0,22,6]},{l:'Hamburger di bovino',per:[172,0,17,10]}]},{eg:1,l:'Pesce',def:210,variants:[{l:'Branzino',per:[82,0,17,2]},{l:'Merluzzo/Nasello',per:[71,0,17,0.5]},{l:'Platessa/Sogliola',per:[73,0,16,1.5]},{l:'Tonno naturale',per:[106,0,25.1,0]},{l:'Seppie',per:[72,0,14,1.5]},{l:'Totani',per:[68,0,13,1]},{l:'Gamberi',per:[71,0,15,1]}]},{eg:1,l:'Salume',def:100,variants:[{l:'Bresaola',per:[152,0.4,33.1,2]},{l:'Prosciutto cotto Snello Rovagnati',per:[105,1.9,20,1.9]},{l:'Prosciutto crudo Snello Rovagnati',per:[172,0,30,5.8]}]},{cnt:1,l:'Uova',defn:1,unit:'uova',per:[72,0,6.3,5]},{eg:1,l:'Albume',def:300,single:1,step:10,per:[44,0,11,0]},{eg:1,l:'Mozzarella proteica Granarolo',def:100,single:1,step:10,per:[131,1.4,20,5]},{eg:1,l:'Mozzarella High Protein Lidl',def:125,single:1,step:10,per:[131,1.4,20,5]},{eg:1,l:'Fiocchi di Latte Milk Pro',def:210,single:1,step:10,per:[67.1,2.8,11.9,0.9]}] },{ nome:'Carboidrato', tipo:'radio', opts:[{cnt:1,l:'Wasa Integrale',defn:5,unit:'fette',per:[36.7,6.6,1,0.1]},{eg:1,l:'Pane integrale',def:70,single:1,per:[240,42,9,3]},{eg:1,l:'Pane grano duro',def:70,single:1,per:[290,57,9,1]},{eg:1,l:'Pane farina 00',def:70,single:1,per:[271,56,9,0.8]},{eg:1,l:'Cereale',def:50,variants:[{l:'Pasta',per:[371,75,13,1.5]},{l:'Pasta integrale',per:[350,64,13,2.5]},{l:'Riso normale',per:[358,79,7,0.6]},{l:'Riso basmati',per:[360,78,8,0.7]},{l:'Riso integrale',per:[357,74,8,2.5]},{l:'Cous cous',per:[376,77,13,1.5]},{l:'Riso nero',per:[370,72,9,3]},{l:'Orzo',per:[354,73,10,1.5]},{l:'Farro',per:[340,70,15,2.5]}]},{eg:1,l:'Gnocchi di patate',def:120,single:1,per:[155,32,4,0.5]},{eg:1,l:'Spatzle',def:120,single:1,per:[220,38,7,4]},{eg:1,l:'Patate',def:200,single:1,per:[77,17,2,0.1]},{eg:1,l:'Mais in scatola (sgocciolato)',def:200,single:1,per:[96,19,3.3,1.2]}] },{ nome:'Legumi (alternativa)', tipo:'grams', def:200, items:legumiItems() },{ nome:'Grassi', tipo:'radio', opts:[{eg:1,l:'Olio',def:5,single:1,step:5,per:[900,0,0,100]}] }]},{ id:'ser', nome:'Spuntino Serale', type:'serale', note:'Solo in caso di fame', cats:[{ nome:'', tipo:'radio', opts:[{l:'1 Yogurt Danone Hipro (160gr)',m:[88,7,15,0]},{eg:1,l:'Yogurt greco 0%',def:150,single:1,step:10,per:[57.3,4,10.1,0]},{l:'1 Yogurt Milk PRO High Protein 16g (180gr)',m:[99,7.6,16.4,0.4]},{eg:1,l:'Affettato pollo o tacchino',def:80,single:1,per:[100,2,20,1.5]}] }] }] },
+  off: { macros:'1500|140|150|32', target:[1500,140,150,32], pasti: [{ id:'col', nome:'Colazione', type:'colazione', alt:[{ nome:'Yogurt', cats:[{ nome:'Proteina', tipo:'radio', opts:[{eg:1,l:'Yogurt Greco 0%',def:200,single:1,step:10,per:[57.3,4,10.1,0]},{eg:1,l:'PRO High Protein crema dessert',def:200,single:1,step:10,per:[83,7.5,10,1.4]}] },{ nome:'Carboidrato', tipo:'radio', opts:[{cnt:1,l:'Fette biscottate',defn:6,unit:'fette',per:[35,6.1,1.1,0.6]},{eg:1,l:'Farro soffiato',def:60,single:1,per:[359,69,13,1.9]},{eg:1,l:'Fiocchi d\'avena',def:60,single:1,per:[370,56,14,7]},{eg:1,l:'Fiocchi di mais',def:60,single:1,per:[378,84,7,0.9]}] }]},{ nome:'Latte', cats:[{ nome:'Proteina', tipo:'fixed', opts:[{l:'200gr latte parz. scremato + 30gr whey isolate',m:[209,11.9,30.1,4.5]}] },{ nome:'Carboidrato', tipo:'radio', opts:[{cnt:1,l:'Fette biscottate',defn:6,unit:'fette',per:[35,6.1,1.1,0.6]},{eg:1,l:'Farro soffiato',def:60,single:1,per:[359,69,13,1.9]},{eg:1,l:'Fiocchi d\'avena',def:60,single:1,per:[370,56,14,7]},{eg:1,l:'Fiocchi di mais',def:60,single:1,per:[378,84,7,0.9]}] }]}]},{ id:'spm', nome:'Spuntino Mattina', type:'spuntino', cats:[{ nome:'', tipo:'radio', opts:[{l:'1 Yogurt Danone Hipro (160gr)',m:[88,7,15,0]},{eg:1,l:'Yogurt greco 0%',def:150,single:1,step:10,per:[57.3,4,10.1,0]},{eg:1,l:'Grana',def:20,single:1,step:5,per:[384,0,33,28]},{l:'1 Yogurt Milk PRO High Protein 16g (180gr)',m:[99,7.6,16.4,0.4]},{eg:1,l:'Affettato pollo o tacchino',def:80,single:1,per:[100,2,20,1.5]}] }] },{ id:'pra', nome:'Pranzo', type:'pranzo', cats:[vrdCat(),{ nome:'Proteina', tipo:'radio', opts:[{eg:1,l:'Carne',def:160,variants:[{l:'Petto di pollo',per:[100,0,23,1]},{l:'Tacchino',per:[107,0,24,1]},{l:'Manzo magro',per:[130,0,21,5]},{l:'Vitello',per:[110,0,21,3]},{l:'Lonza',per:[140,0,22,6]},{l:'Hamburger di bovino',per:[172,0,17,10]}]},{eg:1,l:'Pesce',def:210,variants:[{l:'Branzino',per:[82,0,17,2]},{l:'Merluzzo/Nasello',per:[71,0,17,0.5]},{l:'Platessa/Sogliola',per:[73,0,16,1.5]},{l:'Tonno naturale',per:[106,0,25.1,0]},{l:'Seppie',per:[72,0,14,1.5]},{l:'Totani',per:[68,0,13,1]},{l:'Gamberi',per:[71,0,15,1]}]},{eg:1,l:'Salume',def:100,variants:[{l:'Bresaola',per:[152,0.4,33.1,2]},{l:'Prosciutto cotto Snello Rovagnati',per:[105,1.9,20,1.9]},{l:'Prosciutto crudo Snello Rovagnati',per:[172,0,30,5.8]}]},{cnt:1,l:'Uova',defn:1,unit:'uova',per:[72,0,6.3,5]},{eg:1,l:'Albume',def:200,single:1,step:10,per:[44,0,11,0]},{eg:1,l:'Mozzarella proteica Granarolo',def:100,single:1,step:10,per:[131,1.4,20,5]},{eg:1,l:'Mozzarella High Protein Lidl',def:125,single:1,step:10,per:[131,1.4,20,5]},{eg:1,l:'Fiocchi di Latte Milk Pro',def:210,single:1,step:10,per:[67.1,2.8,11.9,0.9]}] },{ nome:'Carboidrato', tipo:'radio', opts:[{cnt:1,l:'Wasa Integrale',defn:5,unit:'fette',per:[36.7,6.6,1,0.1]},{eg:1,l:'Pane integrale',def:70,single:1,per:[240,42,9,3]},{eg:1,l:'Pane grano duro',def:70,single:1,per:[290,57,9,1]},{eg:1,l:'Pane farina 00',def:70,single:1,per:[271,56,9,0.8]},{eg:1,l:'Cereale',def:50,variants:[{l:'Pasta integrale',per:[350,64,13,2.5]},{l:'Riso',per:[358,79,7,0.6]},{l:'Cous cous',per:[376,77,13,1.5]},{l:'Riso nero',per:[370,72,9,3]},{l:'Orzo',per:[354,73,10,1.5]},{l:'Farro',per:[340,70,15,2.5]}]},{eg:1,l:'Patate',def:200,single:1,per:[77,17,2,0.1]},{eg:1,l:'Mais in scatola (sgocciolato)',def:200,single:1,per:[96,19,3.3,1.2]}] },{ nome:'Legumi (alternativa)', tipo:'grams', def:200, items:legumiItems() },{ nome:'Grassi', tipo:'radio', opts:[{eg:1,l:'Olio',def:10,single:1,step:5,per:[900,0,0,100]}] }]},{ id:'mer', nome:'Merenda Pomeriggio', type:'merenda', cats:[{ nome:'', tipo:'radio', opts:[{l:'1 Yogurt Danone Hipro (160gr)',m:[88,7,15,0]},{eg:1,l:'Yogurt greco 0%',def:150,single:1,step:10,per:[57.3,4,10.1,0]},{cnt:1,l:'Uova sode',defn:1,unit:'uova',per:[72,0,6.3,5]},{eg:1,l:'Grana',def:20,single:1,step:5,per:[384,0,33,28]}] }] },{ id:'cen', nome:'Cena', type:'cena', cats:[vrdCat(),{ nome:'Proteina', tipo:'radio', opts:[{eg:1,l:'Carne',def:160,variants:[{l:'Petto di pollo',per:[100,0,23,1]},{l:'Tacchino',per:[107,0,24,1]},{l:'Manzo magro',per:[130,0,21,5]},{l:'Vitello',per:[110,0,21,3]},{l:'Lonza',per:[140,0,22,6]},{l:'Hamburger di bovino',per:[172,0,17,10]}]},{eg:1,l:'Pesce',def:210,variants:[{l:'Branzino',per:[82,0,17,2]},{l:'Merluzzo/Nasello',per:[71,0,17,0.5]},{l:'Platessa/Sogliola',per:[73,0,16,1.5]},{l:'Tonno naturale',per:[106,0,25.1,0]},{l:'Seppie',per:[72,0,14,1.5]},{l:'Totani',per:[68,0,13,1]},{l:'Gamberi',per:[71,0,15,1]}]},{eg:1,l:'Salume',def:100,variants:[{l:'Bresaola',per:[152,0.4,33.1,2]},{l:'Prosciutto cotto Snello Rovagnati',per:[105,1.9,20,1.9]},{l:'Prosciutto crudo Snello Rovagnati',per:[172,0,30,5.8]}]},{cnt:1,l:'Uova',defn:1,unit:'uova',per:[72,0,6.3,5]},{eg:1,l:'Albume',def:200,single:1,step:10,per:[44,0,11,0]},{eg:1,l:'Mozzarella proteica Granarolo',def:100,single:1,step:10,per:[131,1.4,20,5]},{eg:1,l:'Mozzarella High Protein Lidl',def:125,single:1,step:10,per:[131,1.4,20,5]},{eg:1,l:'Fiocchi di Latte Milk Pro',def:210,single:1,step:10,per:[67.1,2.8,11.9,0.9]}] },{ nome:'Carboidrato', tipo:'radio', opts:[{cnt:1,l:'Wasa Integrale',defn:3,unit:'fette',per:[36.7,6.6,1,0.1]},{eg:1,l:'Pane integrale',def:40,single:1,per:[240,42,9,3]},{eg:1,l:'Pane grano duro',def:40,single:1,per:[290,57,9,1]},{eg:1,l:'Pane farina 00',def:40,single:1,per:[271,56,9,0.8]},{eg:1,l:'Cereale',def:50,variants:[{l:'Pasta',per:[371,75,13,1.5]},{l:'Pasta integrale',per:[350,64,13,2.5]},{l:'Riso normale',per:[358,79,7,0.6]},{l:'Riso basmati',per:[360,78,8,0.7]},{l:'Riso integrale',per:[357,74,8,2.5]},{l:'Cous cous',per:[376,77,13,1.5]},{l:'Riso nero',per:[370,72,9,3]},{l:'Orzo',per:[354,73,10,1.5]},{l:'Farro',per:[340,70,15,2.5]}]}] },{ nome:'Legumi (alternativa, ~130gr)', tipo:'grams', def:130, items:legumiItems() },{ nome:'Grassi', tipo:'radio', opts:[{eg:1,l:'Olio',def:10,single:1,step:5,per:[900,0,0,100]}] }]},{ id:'ser', nome:'Spuntino Serale', type:'serale', note:'Solo in caso di fame', cats:[{ nome:'', tipo:'radio', opts:[{l:'1 Yogurt Danone Hipro (160gr)',m:[88,7,15,0]},{eg:1,l:'Yogurt greco 0%',def:150,single:1,step:10,per:[57.3,4,10.1,0]},{l:'1 Yogurt Milk PRO High Protein 16g (180gr)',m:[99,7.6,16.4,0.4]},{eg:1,l:'Affettato pollo o tacchino',def:80,single:1,per:[100,2,20,1.5]}] }] }] }
+};
+
+var TARGETS={"1": {"on": [1950, 230, 155, 45], "off": [1700, 160, 150, 50]}, "2": {"on": [2050, 250, 155, 45], "off": [1800, 185, 150, 50]}, "3": {"on": [2150, 275, 155, 45], "off": [1900, 200, 150, 52]}, "4": {"on": [2250, 290, 155, 48], "off": [2000, 215, 150, 55]}, "refeed": {"on": [2200, 330, 150, 30], "off": [2200, 330, 150, 30]}};
+var curStep='1';
+var curDay='on', ST={};
+
+// ---- PIANI: grammature base per step/giorno ----
+var PORT = {"1":{"on":{"col":{"opt:Yogurt Greco 0%":200,"opt:Fiocchi d'avena":65,"opt:Miele":20},"spm":{"opt:1 Yogurt Danone Hipro (160gr)":1},"pra":{"cat:Verdure":200,"opt:Carne":150,"opt:Cereale":110,"opt:Olio":15},"mer":{"opt:Grana":20,"cat:Frutta":170,"opt:Whey isolate + acqua":25},"cen":{"cat:Verdure":200,"opt:Pesce":180,"opt:Pane grano duro":65,"opt:Olio":15}},"off":{"col":{"opt:Yogurt Greco 0%":200,"opt:Fiocchi d'avena":55},"spm":{"opt:1 Yogurt Danone Hipro (160gr)":1},"pra":{"cat:Verdure":200,"opt:Carne":160,"opt:Cereale":70,"opt:Olio":20},"mer":{"opt:Grana":10,"cat:Frutta":90},"cen":{"cat:Verdure":200,"opt:Pesce":200,"opt:Pane integrale":55,"opt:Olio":15}}},"2":{"on":{"col":{"opt:Yogurt Greco 0%":200,"opt:Fiocchi d'avena":65,"opt:Miele":20},"spm":{"opt:1 Yogurt Danone Hipro (160gr)":1},"pra":{"cat:Verdure":200,"opt:Carne":150,"opt:Cereale":115,"opt:Olio":15},"mer":{"opt:Grana":15,"cat:Frutta":250,"opt:Whey isolate + acqua":25},"cen":{"cat:Verdure":200,"opt:Pesce":180,"opt:Pane grano duro":70,"opt:Olio":15}},"off":{"col":{"opt:Yogurt Greco 0%":200,"opt:Fiocchi d'avena":40},"spm":{"opt:1 Yogurt Danone Hipro (160gr)":1},"pra":{"cat:Verdure":200,"opt:Carne":160,"opt:Cereale":100,"opt:Olio":20},"mer":{"opt:Grana":15,"cat:Frutta":190},"cen":{"cat:Verdure":200,"opt:Pesce":200,"opt:Pane integrale":40,"opt:Olio":15}}},"3":{"on":{"col":{"opt:Yogurt Greco 0%":200,"opt:Fiocchi d'avena":50,"opt:Miele":20},"spm":{"opt:1 Yogurt Danone Hipro (160gr)":1},"pra":{"cat:Verdure":200,"opt:Carne":150,"opt:Cereale":170,"opt:Olio":15},"mer":{"opt:Grana":10,"cat:Frutta":170,"opt:Whey isolate + acqua":25},"cen":{"cat:Verdure":200,"opt:Pesce":180,"opt:Pane grano duro":75,"opt:Olio":15}},"off":{"col":{"opt:Yogurt Greco 0%":200,"opt:Fiocchi d'avena":50},"spm":{"opt:1 Yogurt Danone Hipro (160gr)":1},"pra":{"cat:Verdure":200,"opt:Carne":160,"opt:Cereale":105,"opt:Olio":20},"mer":{"opt:Grana":5,"cat:Frutta":200},"cen":{"cat:Verdure":200,"opt:Pesce":200,"opt:Pane integrale":50,"opt:Olio":20}}},"4":{"on":{"col":{"opt:Yogurt Greco 0%":200,"opt:Fiocchi d'avena":70,"opt:Miele":20},"spm":{"opt:1 Yogurt Danone Hipro (160gr)":1},"pra":{"cat:Verdure":200,"opt:Carne":150,"opt:Cereale":180,"opt:Olio":20},"mer":{"opt:Grana":5,"cat:Frutta":250,"opt:Whey isolate + acqua":25},"cen":{"cat:Verdure":200,"opt:Pesce":180,"opt:Pane grano duro":40,"opt:Olio":15}},"off":{"col":{"opt:Yogurt Greco 0%":200,"opt:Fiocchi d'avena":55},"spm":{"opt:1 Yogurt Danone Hipro (160gr)":1},"pra":{"cat:Verdure":200,"opt:Carne":160,"opt:Cereale":120,"opt:Olio":25},"mer":{"opt:Grana":0,"cat:Frutta":200},"cen":{"cat:Verdure":200,"opt:Pesce":200,"opt:Pane integrale":60,"opt:Olio":20}}},"refeed":{"on":{"col":{"opt:Yogurt Greco 0%":200,"opt:Fiocchi di mais":90,"opt:Miele":30},"spm":{"opt:1 Yogurt Danone Hipro (160gr)":1},"pra":{"cat:Verdure":150,"opt:Carne":160,"opt:Cereale":140,"opt:Olio":10},"mer":{"opt:Grana":0,"cat:Frutta":250,"opt:Whey isolate + acqua":25},"cen":{"cat:Verdure":150,"opt:Pesce":200,"opt:Pane grano duro":60,"opt:Olio":15}},"off":{"col":{"opt:Yogurt Greco 0%":200,"opt:Fiocchi di mais":90,"opt:Miele":30},"spm":{"opt:1 Yogurt Danone Hipro (160gr)":1},"pra":{"cat:Verdure":150,"opt:Carne":160,"opt:Cereale":140,"opt:Olio":10},"mer":{"opt:Grana":0,"cat:Frutta":250,"opt:Whey isolate + acqua":25},"cen":{"cat:Verdure":150,"opt:Pesce":200,"opt:Pane grano duro":60,"opt:Olio":15}}}};
+
+// _seeded traccia quali (step_day) sono già stati precompilati, per NON sovrascrivere le modifiche manuali
+var _seeded = {};
+
+// Trova gli indici cat/opt di un pasto per label o cat-name, e restituisce le chiavi di stato
+function seedMeal(dk, p, map){
+  var s = ST[dk][p.id] || (ST[dk][p.id]={ai:0,ck:{},gr:{},vr:{}});
+  var cats = p.alt ? p.alt[s.ai].cats : p.cats;
+  cats.forEach(function(cat,ci){
+    // categorie a grammi (verdure/frutta): imposta primo item? No: il piano dà un totale per la categoria.
+    // Per verdure/frutta il piano indica il grammaggio complessivo; selezioniamo nulla di specifico
+    // (l'utente sceglie quali), ma impostiamo il def della categoria a runtime tramite gr su un item generico non ha senso.
+    // Quindi per cat:Verdure/Frutta NON forziamo selezioni: lasciamo che l'utente scelga, il def resta.
+    if(cat.tipo==='radio' || cat.tipo==='fixed'){
+      cat.opts.forEach(function(o,oi){
+        var key='opt:'+o.l;
+        if(map[key]!==undefined){
+          var val=map[key];
+          // seleziona questa opzione (radio: esclusiva)
+          if(cat.tipo==='radio'){ Object.keys(s.ck).forEach(function(k){ if(k.indexOf('c'+ci+'_')===0)s.ck[k]=false; }); }
+          s.ck['c'+ci+'_'+oi]=true;
+          if(o.eg){ s.gr['e'+ci+'_'+oi]=val; if(!o.single && s.vr['v'+ci+'_'+oi]===undefined) s.vr['v'+ci+'_'+oi]=0; }
+          else if(o.cnt){ s.gr['e'+ci+'_'+oi]=val; }
+        }
+      });
+    }
+  });
+}
+
+function seedStepDay(st, dk_day){
+  var dk = st+'_'+dk_day;
+  if(_seeded[dk]) return;
+  var map = PORT[st] && PORT[st][dk_day];
+  if(!map){ _seeded[dk]=true; return; }
+  if(!ST[dk]) ST[dk]={};
+  D[dk_day].pasti.forEach(function(p){
+    var mm = map[p.id];
+    if(mm) seedMeal(dk, p, mm);
+  });
+  _seeded[dk]=true;
+}
+
+// ---- auto-step from plan date ----
+function stepFromDate(){
+  var t=new Date(); var y=t.getFullYear(), mo=t.getMonth()+1, dd=t.getDate();
+  function inR(m1,d1,m2,d2){ var a=(mo>m1)||(mo===m1&&dd>=d1); var b=(mo<m2)||(mo===m2&&dd<=d2); return a&&b; }
+  if(y!==2026) return null;
+  // refeed days
+  if((mo===8&&(dd===3||dd===4||dd===8))) return 'refeed';
+  if(inR(8,3,8,10)) return '1';
+  if(inR(8,14,8,19)) return '2';
+  if(inR(8,27,9,4)) return '3';
+  if(inR(9,13,9,20)) return '4';
+  return null; // vacanze o fuori piano: nessun suggerimento
+}
+
+var SKEY='dieta_v24';
+function saveST(){ try{ localStorage.setItem(SKEY, JSON.stringify({day:curDay, step:curStep, st:ST, acq:(typeof acqTot!=='undefined'?acqTot:0), extra:(typeof EXTRA!=='undefined'?EXTRA:null), openm:(typeof OPENM!=='undefined'?OPENM:{}), vopen:(typeof VOPEN!=='undefined'?VOPEN:{}), seeded:(typeof _seeded!=='undefined'?_seeded:{})})); }catch(e){} }
+function loadST(){ try{ var raw=localStorage.getItem(SKEY); if(raw){ var o=JSON.parse(raw); if(o.st)ST=o.st; if(o.day)curDay=o.day; if(o.step)curStep=o.step; if(typeof o.acq==='number')acqTot=o.acq; if(o.extra&&Array.isArray(o.extra))EXTRA=o.extra; if(o.openm)OPENM=o.openm; if(o.vopen)VOPEN=o.vopen; if(o.seeded)_seeded=o.seeded; } }catch(e){} }
+
+function skey(d){ return curStep+'_'+d; }
+function gs(d,id){ var dk=skey(d); if(!ST[dk])ST[dk]={}; if(!ST[dk][id])ST[dk][id]={ai:0,ck:{},gr:{},vr:{}}; return ST[dk][id]; }
+function setStep(st){ curStep=st; if(st==='refeed')curDay='on'; seedStepDay(curStep,curDay); saveST(); render(); }
+function setDay(d){ curDay=d; seedStepDay(curStep,curDay); saveST(); render(); }
+function resetDay(){ if(confirm('Reset giorno '+curDay.toUpperCase()+'? (azzera pasti, acqua ed extra)')){ ST[skey(curDay)]={}; _seeded[skey(curDay)]=false; acqTot=0; EXTRA=[{n:'',k:'',c:'',p:'',f:''},{n:'',k:'',c:'',p:'',f:''},{n:'',k:'',c:'',p:'',f:''},{n:'',k:'',c:'',p:'',f:''},{n:'',k:'',c:'',p:'',f:''}]; saveST(); render(); renderAcq(); renderExtra(); } }
+function radioSel(d,id,ci,oi){ var s=gs(d,id); var was=s.ck['c'+ci+'_'+oi]; Object.keys(s.ck).forEach(function(k){ if(k.indexOf('c'+ci+'_')===0)s.ck[k]=false; }); if(!was)s.ck['c'+ci+'_'+oi]=true; render(); }
+function toggleFix(d,id,k){ var s=gs(d,id); s.ck[k]=!s.ck[k]; render(); }
+function toggleSub(d,id,ci,oi,si,e){ e.stopPropagation(); var s=gs(d,id); s.ck['s'+ci+'_'+oi+'_'+si]=!s.ck['s'+ci+'_'+oi+'_'+si]; render(); }
+function setAlt(d,id,ai){ var s=gs(d,id); if(s.ai!==ai){s.ai=ai;s.ck={};s.gr={};s.vr={};} render(); }
+function togglePW(d,id){ var s=gs(d,id); s.ck['pw']=!s.ck['pw']; render(); }
+// gram multi-select
+function toggleMG(d,id,ci,ii){ var s=gs(d,id); var k='g'+ci+'_'+ii; s.ck[k]=!s.ck[k]; if(s.ck[k]&&!s.gr[k]){} render(); }
+function setGR(d,id,ci,ii,v){ var s=gs(d,id); s.gr['g'+ci+'_'+ii]=parseInt(v)||0; updateTotals(); saveST(); }
+function stepGR(d,id,ci,ii,delta,defv,e){ e.stopPropagation(); var s=gs(d,id); var k='g'+ci+'_'+ii; var cur=s.gr[k]!==undefined?s.gr[k]:defv; cur=Math.max(0,cur+delta); s.gr[k]=cur; if(!s.ck[k])s.ck[k]=true; render(); }
+
+
+function egSel(d,id,ci,oi){ var s=gs(d,id); Object.keys(s.ck).forEach(function(k){ if(k.indexOf('c'+ci+'_')===0)s.ck[k]=false; }); s.ck['c'+ci+'_'+oi]=true; render(); }
+function egToggle(d,id,ci,oi){ var s=gs(d,id); var was=s.ck['c'+ci+'_'+oi]; Object.keys(s.ck).forEach(function(k){ if(k.indexOf('c'+ci+'_')===0)s.ck[k]=false; }); if(!was)s.ck['c'+ci+'_'+oi]=true; render(); }
+function egSetG(d,id,ci,oi,v){ var s=gs(d,id); s.gr['e'+ci+'_'+oi]=parseFloat(v)||0; updateTotals(); refreshMealSub(); }
+function egStep(d,id,ci,oi,delta,defv,e){ e.stopPropagation(); var s=gs(d,id); var k='e'+ci+'_'+oi; var cur=s.gr[k]!==undefined?s.gr[k]:defv; cur=Math.max(0,Math.round((cur+delta)*10)/10); s.gr[k]=cur; if(!s.ck['c'+ci+'_'+oi])s.ck['c'+ci+'_'+oi]=true; render(); }
+function egPickVar(d,id,ci,oi,vi,e){ e.stopPropagation(); var s=gs(d,id); s.vr['v'+ci+'_'+oi]=vi; if(!s.ck['c'+ci+'_'+oi])s.ck['c'+ci+'_'+oi]=true; render(); }
+function refreshMealSub(){ /* totals already live; meal subtitles update on next render */ }
+function fmtM(m){ if(!m)return ''; return m[0]+' kcal · C '+m[1]+' · P '+m[2]+' · G '+m[3]; }
+function addM(a,b){ return [a[0]+b[0],Math.round((a[1]+b[1])*10)/10,Math.round((a[2]+b[2])*10)/10,Math.round((a[3]+b[3])*10)/10]; }
+function scaleM(per100,grams){ var f=grams/100; return [Math.round(per100[0]*f),Math.round(per100[1]*f*10)/10,Math.round(per100[2]*f*10)/10,Math.round(per100[3]*f*10)/10]; }
+
+function catList(p,s){ return p.alt?p.alt[s.ai].cats:p.cats; }
+
+function mealMacros(p,s){
+  var tot=[0,0,0,0];
+  catList(p,s).forEach(function(cat,ci){
+    if(cat.tipo==='radio'){
+      cat.opts.forEach(function(opt,oi){
+        if(s.ck['c'+ci+'_'+oi]){
+          if(opt.eg){
+            var g=s.gr['e'+ci+'_'+oi]!==undefined?s.gr['e'+ci+'_'+oi]:opt.def;
+            if(opt.single){ tot=addM(tot,scaleM(opt.per,g)); }
+            else { var vi=s.vr['v'+ci+'_'+oi]; if(vi!==undefined&&opt.variants[vi]) tot=addM(tot,scaleM(opt.variants[vi].per,g)); }
+          } else if(opt.cnt){
+            var n=s.gr['e'+ci+'_'+oi]!==undefined?s.gr['e'+ci+'_'+oi]:opt.defn;
+            tot=addM(tot,[Math.round(opt.per[0]*n),Math.round(opt.per[1]*n*10)/10,Math.round(opt.per[2]*n*10)/10,Math.round(opt.per[3]*n*10)/10]);
+          } else if(opt.sub){ opt.sub.forEach(function(sb,si){ if(s.ck['s'+ci+'_'+oi+'_'+si]&&sb.m) tot=addM(tot,sb.m); }); }
+          else if(opt.m){ tot=addM(tot,opt.m); }
+        }
+      });
+    } else if(cat.tipo==='grams'){
+      cat.items.forEach(function(it,ii){
+        var k='g'+ci+'_'+ii;
+        if(s.ck[k]){ var g=s.gr[k]!==undefined?s.gr[k]:cat.def; tot=addM(tot,scaleM(it.per,g)); }
+      });
+    } else {
+      cat.opts.forEach(function(opt,oi){ if(s.ck['c'+ci+'_'+oi]&&opt.m) tot=addM(tot,opt.m); });
+    }
+  });
+  if(p.pw&&s.ck['pw']&&p.pwm) tot=addM(tot,p.pwm);
+  return tot;
+}
+
+function countCk(){
+  var day=D[curDay],total=0,done=0;
+  day.pasti.forEach(function(p){
+    var s=gs(curDay,p.id);
+    catList(p,s).forEach(function(cat,ci){
+      if(cat.tipo==='radio'){ total++; if(cat.opts.some(function(_,oi){return s.ck['c'+ci+'_'+oi];}))done++; }
+      else if(cat.tipo==='grams'){ total++; if(cat.items.some(function(_,ii){return s.ck['g'+ci+'_'+ii];}))done++; }
+      else { cat.opts.forEach(function(_,oi){ total++; if(s.ck['c'+ci+'_'+oi])done++; }); }
+    });
+    if(p.pw){ total++; if(s.ck['pw'])done++; }
+  });
+  return {total:total,done:done};
+}
+
+function updateTotals(){
+  var day=D[curDay];
+  var gtot=[0,0,0,0];
+  day.pasti.forEach(function(p){ gtot=addM(gtot,mealMacros(p,gs(curDay,p.id))); });
+  var ex=extraTotals(); gtot=[gtot[0]+ex[0],Math.round((gtot[1]+ex[1])*10)/10,Math.round((gtot[2]+ex[2])*10)/10,Math.round((gtot[3]+ex[3])*10)/10];
+  var T=(TARGETS[curStep]&&TARGETS[curStep][curDay])?TARGETS[curStep][curDay]:[0,0,0,0]; var labels=['Calorie','Carb','Prot','Grassi'],units=['','g','g','g'];
+  var h='<div class="totali-row">';
+  for(var i=0;i<4;i++){ var over=gtot[i]>T[i]*1.05?' over':''; h+='<div class="tot-card"><div class="tot-val'+over+'">'+gtot[i]+units[i]+'</div><div class="tot-lbl">'+labels[i]+'</div><div class="tot-target">/ '+T[i]+units[i]+'</div></div>'; }
+  h+='</div>';
+  document.getElementById('totali').innerHTML=h;
+  // update meal subtitles live (without full re-render) handled in render
+}
+
+function render(){ saveST();
+  ['on','off'].forEach(function(d){ var b=document.getElementById('btn-'+d); b.className='day-btn'+(d===curDay?' '+d:''); });
+  ['1','2','3','4','refeed'].forEach(function(st){ var b=document.getElementById('stp-'+st); if(b)b.className='step-btn2'+(st===curStep?' sel':''); });
+  var day=D[curDay];
+  updateTotals();
+  var r=countCk();
+  document.getElementById('progFill').style.width=(r.total?Math.round(r.done/r.total*100):0)+'%';
+  document.getElementById('progLbl').textContent=r.done+' / '+r.total;
+
+  var c='';
+  day.pasti.forEach(function(p,pi){
+    var s=gs(curDay,p.id);
+    var mm=mealMacros(p,s);
+    var isOpen=!!OPENM[p.id];
+    c+='<div class="meal-sec"><div class="meal-head'+(isOpen?' open':'')+'" onclick="toggleMeal(\''+p.id+'\')"><div class="meal-left"><span class="meal-lbl '+p.type+'">'+p.nome+'</span>';
+    if(mm[0]>0) c+='<span class="meal-done">'+mm[0]+' kcal</span>';
+    c+='</div>';
+    if(mm[0]>0) c+='<span class="meal-sub"><b>'+mm[0]+'</b> · C '+mm[1]+' · P '+mm[2]+' · G '+mm[3]+'</span>';
+    c+='<span class="meal-chev">&#9654;</span></div>';
+    if(isOpen){
+      c+='<div class="meal-body">';
+      if(p.note) c+='<div class="sec-note">'+p.note+'</div>';
+      if(p.alt){
+        c+='<div class="alt-tabs">';
+        p.alt.forEach(function(a,ai){ c+='<button class="alt-tab'+(s.ai===ai?' sel':'')+'" onclick="setAlt(\''+curDay+'\',\''+p.id+'\','+ai+')">'+a.nome+'</button>'; });
+        c+='</div>';
+        c+=renderCats(p.alt[s.ai].cats,p.id,s);
+      } else { c+=renderCats(p.cats,p.id,s); }
+      if(p.pw){ var pwc=s.ck['pw']?' ck':''; c+='<div class="pw-badge">POST WORKOUT</div><div class="fix'+pwc+'" onclick="togglePW(\''+curDay+'\',\''+p.id+'\')"><div class="fix-box"></div><div style="flex:1"><div class="fix-txt">'+p.pw+'</div>'+(p.pwm?'<div class="fix-macros">'+fmtM(p.pwm)+'</div>':'')+'</div></div>'; }
+      c+='</div>';
+    }
+    c+='</div>';
+  });
+  document.getElementById('content').innerHTML=c;
+}
+
+function renderCats(cats,pid,s){
+  var h='';
+  cats.forEach(function(cat,ci){
+    h+='<div class="cat-block">';
+    if(cat.nome) h+='<div class="cat-lbl">'+cat.nome+'</div>';
+    if(cat.tipo==='radio'){
+      cat.opts.forEach(function(opt,oi){
+        var ck=s.ck['c'+ci+'_'+oi];
+        if(opt.eg){
+          var g=s.gr['e'+ci+'_'+oi]!==undefined?s.gr['e'+ci+'_'+oi]:opt.def;
+          var mm=null;
+          if(ck){ if(opt.single){ mm=scaleM(opt.per,g); } else { var vi=s.vr['v'+ci+'_'+oi]; if(vi!==undefined&&opt.variants[vi]) mm=scaleM(opt.variants[vi].per,g); } }
+          h+='<div class="egopt'+(ck?' ck':'')+'">';
+          h+='<div class="eghead" onclick="egToggle(\''+curDay+'\',\''+pid+'\','+ci+','+oi+')"><div class="egcircle"></div><div class="egname">'+opt.l+'</div>';
+          h+='<div class="eggr"><button class="egstep" onclick="egStep(\''+curDay+'\',\''+pid+'\','+ci+','+oi+',-'+(opt.step||10)+','+opt.def+',event)">-</button><input type="number" value="'+g+'" onfocus="egSel(\''+curDay+'\',\''+pid+'\','+ci+','+oi+')" oninput="egSetG(\''+curDay+'\',\''+pid+'\','+ci+','+oi+',this.value)"><span class="u">g</span><button class="egstep" onclick="egStep(\''+curDay+'\',\''+pid+'\','+ci+','+oi+',+'+(opt.step||10)+','+opt.def+',event)">+</button></div>';
+          h+='</div>';
+          if(mm) h+='<div class="egmac">'+fmtM(mm)+'</div>';
+          if(!opt.single&&ck){
+            h+='<div class="egvars">';
+            opt.variants.forEach(function(v,vi){ var sel=s.vr['v'+ci+'_'+oi]===vi; var vm=scaleM(v.per,g); h+='<div class="egvar'+(sel?' sel':'')+'" onclick="egPickVar(\''+curDay+'\',\''+pid+'\','+ci+','+oi+','+vi+',event)"><div class="egvdot"></div><div class="egvtxt">'+v.l+'</div><div class="egvmac">'+vm[0]+' kcal · P '+vm[2]+'</div></div>'; });
+            h+='</div>';
+          }
+          h+='</div>';
+        } else if(opt.cnt){
+          var n=s.gr['e'+ci+'_'+oi]!==undefined?s.gr['e'+ci+'_'+oi]:opt.defn;
+          var mm=ck?[Math.round(opt.per[0]*n),Math.round(opt.per[1]*n*10)/10,Math.round(opt.per[2]*n*10)/10,Math.round(opt.per[3]*n*10)/10]:null;
+          h+='<div class="egopt'+(ck?' ck':'')+'">';
+          h+='<div class="eghead" onclick="egToggle(\''+curDay+'\',\''+pid+'\','+ci+','+oi+')"><div class="egcircle"></div><div class="egname">'+opt.l+'</div>';
+          h+='<div class="eggr"><button class="egstep" onclick="egStep(\''+curDay+'\',\''+pid+'\','+ci+','+oi+',-1,'+opt.defn+',event)">-</button><input type="number" value="'+n+'" onfocus="egSel(\''+curDay+'\',\''+pid+'\','+ci+','+oi+')" oninput="egSetG(\''+curDay+'\',\''+pid+'\','+ci+','+oi+',this.value)"><span class="u">'+opt.unit+'</span><button class="egstep" onclick="egStep(\''+curDay+'\',\''+pid+'\','+ci+','+oi+',1,'+opt.defn+',event)">+</button></div>';
+          h+='</div>';
+          if(mm) h+='<div class="egmac">'+fmtM(mm)+'</div>';
+          h+='</div>';
+        } else {
+        var ck2=s.ck['c'+ci+'_'+oi];
+        h+='<div class="opt'+(ck2?' ck':'')+'" onclick="radioSel(\''+curDay+'\',\''+pid+'\','+ci+','+oi+')"><div class="opt-circle"></div><div class="opt-text"><div>'+opt.l+'</div>';
+        if(opt.m&&!opt.sub) h+='<div class="opt-macros">'+fmtM(opt.m)+'</div>';
+        if(opt.sub&&ck2){
+          h+='<div class="sub-list">';
+          opt.sub.forEach(function(sb,si){ var sc=s.ck['s'+ci+'_'+oi+'_'+si]; h+='<div class="sub'+(sc?' ck':'')+'" onclick="toggleSub(\''+curDay+'\',\''+pid+'\','+ci+','+oi+','+si+',event)"><div class="sub-box"></div><div class="sub-txt">'+sb.l+'</div>'+(sb.m?'<div class="sub-macros">'+sb.m[0]+' kcal · P '+sb.m[2]+'</div>':'')+'</div>'; });
+          h+='</div>';
+        }
+        h+='</div></div>';
+        }
+      });
+    } else if(cat.tipo==='grams'){
+      var mgHtml='';
+      var selCount=0;
+      cat.items.forEach(function(it,ii){
+        var k='g'+ci+'_'+ii; var ck=s.ck[k]; var g=s.gr[k]!==undefined?s.gr[k]:cat.def;
+        if(ck)selCount++;
+        var mm = ck ? scaleM(it.per,g) : null;
+        mgHtml+='<div class="mg'+(ck?' ck':'')+'">';
+        mgHtml+='<div class="mg-box" onclick="toggleMG(\''+curDay+'\',\''+pid+'\','+ci+','+ii+')"></div>';
+        mgHtml+='<div class="mg-name" onclick="toggleMG(\''+curDay+'\',\''+pid+'\','+ci+','+ii+')">'+it.l+(mm?'<div class="mg-macros" style="text-align:left;margin-top:2px">'+mm[0]+' kcal · C '+mm[1]+' · P '+mm[2]+'</div>':'')+'</div>';
+        mgHtml+='<div class="mg-gr"><button class="step-btn" style="width:24px;height:24px;font-size:14px" onclick="stepGR(\''+curDay+'\',\''+pid+'\','+ci+','+ii+',-10,'+cat.def+',event)">-</button>';
+        mgHtml+='<input class="mg-input" type="number" value="'+g+'" onfocus="if(!'+(''+!!ck)+')toggleMG(\''+curDay+'\',\''+pid+'\','+ci+','+ii+')" oninput="setGR(\''+curDay+'\',\''+pid+'\','+ci+','+ii+',this.value)"><span class="mg-unit">g</span>';
+        mgHtml+='<button class="step-btn" style="width:24px;height:24px;font-size:14px" onclick="stepGR(\''+curDay+'\',\''+pid+'\','+ci+','+ii+',10,'+cat.def+',event)">+</button></div>';
+        mgHtml+='</div>';
+      });
+      if(cat.collapsible){
+        var vkey=pid; var vopen=!!VOPEN[vkey];
+        h+='<div class="vdrop-head'+(vopen?' open':'')+'" onclick="toggleVdrop(\''+vkey+'\')"><span class="vdrop-title">Scegli '+(cat.nome&&cat.nome.toLowerCase().indexOf('frutta')>=0?'frutta':'verdure')+'</span><span style="display:flex;align-items:center;gap:8px">'+(selCount>0?'<span class="vdrop-count">'+selCount+' sel.</span>':'')+'<span class="vdrop-chev">&#9654;</span></span></div>';
+        if(vopen) h+='<div class="vdrop-body">'+mgHtml+'</div>';
+      } else {
+        h+=mgHtml;
+      }
+    } else {
+      cat.opts.forEach(function(opt,oi){ var ck=s.ck['c'+ci+'_'+oi]; h+='<div class="fix'+(ck?' ck':'')+'" onclick="toggleFix(\''+curDay+'\',\''+pid+'\',\'c'+ci+'_'+oi+'\')"><div class="fix-box"></div><div style="flex:1"><div class="fix-txt">'+opt.l+'</div>'+(opt.m?'<div class="fix-macros">'+fmtM(opt.m)+'</div>':'')+'</div></div>'; });
+    }
+    h+='</div>';
+  });
+  return h;
+}
+
+var acqTot=0,ACQ_TARGET=3250;
+var OPENM={};
+var VOPEN={};
+var EXTRA=[{n:'',k:'',c:'',p:'',f:''},{n:'',k:'',c:'',p:'',f:''},{n:'',k:'',c:'',p:'',f:''},{n:'',k:'',c:'',p:'',f:''},{n:'',k:'',c:'',p:'',f:''}];
+function extraTotals(){ var t=[0,0,0,0]; EXTRA.forEach(function(r){ t[0]+=parseFloat(r.k)||0; t[1]+=parseFloat(r.c)||0; t[2]+=parseFloat(r.p)||0; t[3]+=parseFloat(r.f)||0; }); return [Math.round(t[0]),Math.round(t[1]*10)/10,Math.round(t[2]*10)/10,Math.round(t[3]*10)/10]; }
+function toggleVdrop(pid){ VOPEN[pid]=!VOPEN[pid]; saveST(); render(); }
+function toggleMeal(id){ OPENM[id]=!OPENM[id]; saveST(); render(); }
+function setExtra(i,field,v){ EXTRA[i][field]=v; saveST(); updateTotals(); }
+function renderExtra(){ var h=''; for(var i=0;i<5;i++){ var r=EXTRA[i]; h+='<div class="extra-row"><input class="extra-name" type="text" value="'+(r.n||'').replace(/"/g,'&quot;')+'" placeholder="Alimento extra..." oninput="setExtra('+i+',\'n\',this.value)"><input class="extra-m" type="number" value="'+(r.k||'')+'" placeholder="0" oninput="setExtra('+i+',\'k\',this.value)"><input class="extra-m" type="number" value="'+(r.c||'')+'" placeholder="0" oninput="setExtra('+i+',\'c\',this.value)"><input class="extra-m" type="number" value="'+(r.p||'')+'" placeholder="0" oninput="setExtra('+i+',\'p\',this.value)"><input class="extra-m" type="number" value="'+(r.f||'')+'" placeholder="0" oninput="setExtra('+i+',\'f\',this.value)"></div>'; } document.getElementById('extraRows').innerHTML=h; }
+
+function acqChange(sg){ var inp=document.getElementById('acqQty'); var q=parseInt(inp.value)||300; acqTot=Math.max(0,acqTot+sg*q); inp.value=q; renderAcq(); }
+function renderAcq(){ saveST(); var pct=Math.round(acqTot/ACQ_TARGET*100); var pctBar=Math.min(100,pct); document.getElementById('acqMl').textContent=acqTot; document.getElementById('acqBar').style.width=pctBar+'%'; var pe=document.getElementById('acqPct'); if(pe)pe.textContent='('+pct+'%)'; var n=document.getElementById('acqNote'),ok=document.getElementById('acqOk'); if(acqTot>=ACQ_TARGET){n.style.display='none';ok.style.display='block';ok.textContent='Obiettivo raggiunto! '+pct+'% ('+acqTot+' ml)';}else{n.style.display='block';n.textContent='Mancano '+(ACQ_TARGET-acqTot)+' ml — '+pct+'% completato';ok.style.display='none';} }
+
+var jsMap={0:'on',1:'off',2:'on',3:'off',4:'on',5:'off',6:'on'};
+var _hadSave=false; try{ _hadSave=!!localStorage.getItem(SKEY); }catch(e){}
+
+// frutta in merenda OFF (serve agli step alti)
+(function(){
+  var mer = D.off.pasti.filter(function(p){return p.id==='mer';})[0];
+  if(mer && !mer.cats.some(function(c){return c.nome && c.nome.indexOf('Frutta')===0;}))
+    mer.cats.push({ nome:'Frutta', tipo:'grams', def:150, items:FRUTTA, collapsible:1 });
+})();
+
+loadST();
+var _autoStep=stepFromDate(); if(_autoStep)curStep=_autoStep;
+seedStepDay(curStep,curDay);
+if(!_hadSave){ curDay=jsMap[new Date().getDay()]; }
+render(); renderAcq(); renderExtra();
+</script>
+</body>
+</html>
